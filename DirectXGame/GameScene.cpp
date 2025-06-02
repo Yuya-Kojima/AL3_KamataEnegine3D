@@ -11,7 +11,19 @@ void GameScene::Initialize() {
 	debugCamera_ = new DebugCamera(1280, 720);
 
 	// カメラの初期化
+	camera_.farZ = 510.0f;
 	camera_.Initialize();
+
+	// 3Dモデルの生成
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
+
+	// 天球の生成と初期化
+	skydome_ = new Skydome();
+	skydome_->Initialize(modelSkydome_);
+
+	// プレイヤーの初期化
+	player_ = new Player();
+	player_->Initialize(model_);
 
 	// 要素数
 	const uint32_t kNumBlockVirtical = 10;
@@ -77,9 +89,6 @@ void GameScene::Update() {
 		}
 	}
 
-	// デバックカメラの更新
-	debugCamera_->Update();
-
 #ifdef _DEBUG
 
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
@@ -104,6 +113,12 @@ void GameScene::Update() {
 		// ビュープロジェクション行列の更新と転送
 		camera_.UpdateMatrix();
 	}
+
+	// 天球の更新処理
+	skydome_->Update();
+
+	// プレイヤーの更新処理
+	player_->Update();
 }
 
 void GameScene::Draw() {
@@ -125,6 +140,12 @@ void GameScene::Draw() {
 		}
 	}
 
+	// 天球の描画処理
+	skydome_->Draw();
+
+	// プレイヤーの描画
+	player_->Draw();
+
 	Model::PostDraw();
 }
 
@@ -135,6 +156,9 @@ GameScene::~GameScene() {
 
 	// デバックカメラの解放
 	delete debugCamera_;
+
+	// 3Dモデルの解放
+	delete modelSkydome_;
 
 	// ブロック用ワールドトランスフォームの解放
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
