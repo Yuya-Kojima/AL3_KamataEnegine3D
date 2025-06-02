@@ -27,7 +27,7 @@ private:
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 
 	// カメラ
-	KamataEngine::Camera* camera_ = nullptr;
+	KamataEngine::Camera camera_;
 
 	// デバックカメラ有効
 	bool isDebugCameraActive_ = false;
