@@ -14,16 +14,15 @@ void GameScene::Initialize() {
 	camera_.farZ = 510.0f;
 	camera_.Initialize();
 
-	// 3Dモデルの生成
-	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
-
 	// 天球の生成と初期化
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 	skydome_ = new Skydome();
 	skydome_->Initialize(modelSkydome_);
 
 	// プレイヤーの初期化
+	modelPlayer_ = Model::CreateFromOBJ("player", true);
 	player_ = new Player();
-	player_->Initialize(model_);
+	player_->Initialize(modelPlayer_);
 
 	// 要素数
 	const uint32_t kNumBlockVirtical = 10;
@@ -66,26 +65,7 @@ void GameScene::Update() {
 				continue;
 			}
 
-			// アフィン行列作成
-			Matrix4x4 affineMatrix;
-
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 4; j++) {
-					if (i == j) {
-						affineMatrix.m[j][i] = 1.0f;
-					} else {
-						affineMatrix.m[j][i] = 0.0f;
-					}
-				}
-			}
-
-			affineMatrix.m[3][0] = worldTransformBlock->translation_.x;
-			affineMatrix.m[3][1] = worldTransformBlock->translation_.y;
-
-			worldTransformBlock->matWorld_ = affineMatrix; // 資料14pまで
-
-			// 定数バッファに転送する
-			worldTransformBlock->TransferMatrix();
+			WorldTransformUpdate(*worldTransformBlock);
 		}
 	}
 
@@ -141,10 +121,10 @@ void GameScene::Draw() {
 	}
 
 	// 天球の描画処理
-	skydome_->Draw();
+	skydome_->Draw(camera_);
 
 	// プレイヤーの描画
-	player_->Draw();
+	player_->Draw(camera_);
 
 	Model::PostDraw();
 }

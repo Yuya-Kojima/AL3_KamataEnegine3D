@@ -1,5 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
+#include "WorldMatrixTransform.h"
 
 class Skydome {
 
@@ -7,7 +8,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(KamataEngine::Model *model);
+	void Initialize(KamataEngine::Model* model);
 
 	/// <summary>
 	/// 更新処理
@@ -17,7 +18,7 @@ public:
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw();
+	void Draw(KamataEngine::Camera &camera);
 
 	/// <summary>
 	/// デストラクタ
@@ -26,7 +27,7 @@ public:
 
 private:
 	// ワールド変換データ
-	KamataEngine::WorldTransform worldTransform_;
+	KamataEngine::WorldTransform* worldTransform_;
 
 	// モデル
 	KamataEngine::Model* model_ = nullptr;

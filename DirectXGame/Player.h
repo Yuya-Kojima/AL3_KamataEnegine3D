@@ -1,6 +1,6 @@
 #pragma once
-#include "WorldMatrixTransform.h"
 #include "KamataEngine.h"
+#include "WorldMatrixTransform.h"
 
 class Player {
 
@@ -9,7 +9,7 @@ public:
 
 	void Update();
 
-	void Draw();
+	void Draw(KamataEngine::Camera& camera);
 
 	~Player();
 
@@ -21,5 +21,5 @@ private:
 	KamataEngine::Camera camera_;
 
 	// ワールド変換データ
-	KamataEngine::WorldTransform *worldTransform_;
+	KamataEngine::WorldTransform* worldTransform_;
 };

@@ -10,14 +10,30 @@ void Player::Initialize(Model* model) {
 	// ワールド変換データの初期化
 	worldTransform_ = new WorldTransform();
 	worldTransform_->Initialize();
+	worldTransform_->translation_.y = 2.0f;
 
 	// カメラの初期化
 	camera_.Initialize();
 }
 
-void Player::Update() {}
+void Player::Update() {
 
-void Player::Draw() {
+	WorldTransformUpdate(*worldTransform_);
+
+	if (Input::GetInstance()->TriggerKey(DIK_W)) {
+		worldTransform_->translation_.y += 2.0f;
+	} else if (Input::GetInstance()->TriggerKey(DIK_S)) {
+		worldTransform_->translation_.y -= 2.0f;
+	}
+
+	if (Input::GetInstance()->TriggerKey(DIK_A)) {
+		worldTransform_->translation_.x -= 2.0f;
+	} else if (Input::GetInstance()->TriggerKey(DIK_D)) {
+		worldTransform_->translation_.x += 2.0f;
+	}
+}
+
+void Player::Draw(Camera& camera) {
 
 	// DirectXCommonインスタンスの生成
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
@@ -25,7 +41,7 @@ void Player::Draw() {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	// 3Dモデル描画
-	model_->Draw(*worldTransform_, camera_);
+	model_->Draw(*worldTransform_, camera);
 
 	Model::PostDraw();
 }
