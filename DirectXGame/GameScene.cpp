@@ -21,8 +21,11 @@ void GameScene::Initialize() {
 
 	// プレイヤーの初期化
 	modelPlayer_ = Model::CreateFromOBJ("player", true);
+
+	Vector3 playerPosition = mapChipField_->GetMatChipPositionByIndex(1, 18);
+
 	player_ = new Player();
-	player_->Initialize(modelPlayer_);
+	player_->Initialize(modelPlayer_, playerPosition);
 
 	// マップチップフィールド
 	mapChipField_ = new MapChipField;

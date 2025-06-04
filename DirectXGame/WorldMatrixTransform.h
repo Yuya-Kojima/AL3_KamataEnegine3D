@@ -8,6 +8,14 @@
 void WorldTransformUpdate(KamataEngine::WorldTransform& worldTransform);
 
 /// <summary>
+/// ベクトルの足し算
+/// </summary>
+/// <param name="v1"></param>
+/// <param name="v2"></param>
+/// <returns></returns>
+KamataEngine::Vector3 Add(const KamataEngine::Vector3& v1, const KamataEngine::Vector3& v2);
+
+/// <summary>
 /// 行列の積を求める
 /// </summary>
 /// <param name="matrix1">行列</param>

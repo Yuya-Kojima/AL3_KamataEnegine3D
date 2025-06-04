@@ -2,16 +2,16 @@
 
 using namespace KamataEngine;
 
-void Player::Initialize(Model* model) {
+void Player::Initialize(Model* model, Vector3& position) {
 
 	// 3Dモデルの初期化
 	model_ = model;
 
 	// ワールド変換データの初期化
-	worldTransform_ = new WorldTransform();
-	worldTransform_->Initialize();
-	worldTransform_->translation_.x = 2.0f;
-	worldTransform_->translation_.y = 2.0f;
+	// worldTransform_ = new WorldTransform();
+	worldTransform_.Initialize();
+	worldTransform_.translation_ = position;
+	// worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 
 	// カメラの初期化
 	camera_.Initialize();
@@ -19,19 +19,29 @@ void Player::Initialize(Model* model) {
 
 void Player::Update() {
 
-	WorldTransformUpdate(*worldTransform_);
+	if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
 
-	if (Input::GetInstance()->TriggerKey(DIK_W)) {
-		worldTransform_->translation_.y += 2.0f;
-	} else if (Input::GetInstance()->TriggerKey(DIK_S)) {
-		worldTransform_->translation_.y -= 2.0f;
+		// 左右加速
+		Vector3 acceleration = {};
+
+		if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+			acceleration.x += kAcceleration_;
+		} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+			acceleration.x -= kAcceleration_;
+		}
+
+		velocity_ = Add(velocity_, acceleration);
+	} else {
+
+		// 非入力時は移動減衰
+		velocity_.x *= (1.0f - kAttenuation_);
 	}
 
-	if (Input::GetInstance()->TriggerKey(DIK_A)) {
-		worldTransform_->translation_.x -= 2.0f;
-	} else if (Input::GetInstance()->TriggerKey(DIK_D)) {
-		worldTransform_->translation_.x += 2.0f;
-	}
+	// 移動
+	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
+
+	// 行列更新
+	WorldTransformUpdate(worldTransform_);
 }
 
 void Player::Draw(Camera& camera) {
@@ -42,7 +52,7 @@ void Player::Draw(Camera& camera) {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	// 3Dモデル描画
-	model_->Draw(*worldTransform_, camera);
+	model_->Draw(worldTransform_, camera);
 
 	Model::PostDraw();
 }
@@ -52,5 +62,5 @@ Player::~Player() {
 	// 3Dモデルの解放
 	delete model_;
 
-	delete worldTransform_;
+	//	delete worldTransform_;
 }

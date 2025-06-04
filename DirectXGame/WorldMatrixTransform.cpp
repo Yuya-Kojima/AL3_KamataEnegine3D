@@ -9,6 +9,17 @@ void WorldTransformUpdate(KamataEngine::WorldTransform& worldTransform) {
 	worldTransform.TransferMatrix();
 }
 
+KamataEngine::Vector3 Add(const KamataEngine::Vector3& v1, const KamataEngine::Vector3& v2) {
+
+	KamataEngine::Vector3 result;
+
+	result.x = v1.x + v2.x;
+	result.y = v1.y + v2.y;
+	result.z = v1.z + v2.z;
+
+	return result;
+}
+
 KamataEngine::Matrix4x4 Multiply(KamataEngine::Matrix4x4 matrix1, KamataEngine::Matrix4x4 matrix2) {
 
 	KamataEngine::Matrix4x4 result;
