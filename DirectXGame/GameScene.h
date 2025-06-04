@@ -1,5 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
+#include "MapChipField.h"
 #include "Player.h"
 #include "Skydome.h"
 #include "WorldMatrixTransform.h"
@@ -21,6 +22,8 @@ public:
 	/// デストラクタ
 	/// </summary>
 	~GameScene();
+
+	void GenerateBlocks();
 
 private:
 	// モデルデータ
@@ -45,4 +48,7 @@ private:
 	// プレイヤー
 	Player* player_ = nullptr;
 	KamataEngine::Model* modelPlayer_ = nullptr;
+
+	// マップチップフィールド
+	MapChipField* mapChipField_;
 };

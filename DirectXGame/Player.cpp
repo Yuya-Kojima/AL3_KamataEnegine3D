@@ -10,6 +10,7 @@ void Player::Initialize(Model* model) {
 	// ワールド変換データの初期化
 	worldTransform_ = new WorldTransform();
 	worldTransform_->Initialize();
+	worldTransform_->translation_.x = 2.0f;
 	worldTransform_->translation_.y = 2.0f;
 
 	// カメラの初期化
