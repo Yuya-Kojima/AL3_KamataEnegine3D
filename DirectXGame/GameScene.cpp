@@ -5,7 +5,7 @@ using namespace KamataEngine;
 void GameScene::Initialize() {
 
 	// 3Dモデルデータの生成
-	model_ = Model::Create();
+	model_ = Model::CreateFromOBJ("cube",true);
 
 	// デバックカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
