@@ -1,4 +1,5 @@
 #pragma once
+#include "CameraController.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -51,4 +52,7 @@ private:
 
 	// マップチップフィールド
 	MapChipField* mapChipField_;
+
+	// カメラコントローラー
+	CameraController* cameraController_ = nullptr;
 };

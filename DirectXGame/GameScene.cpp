@@ -5,7 +5,7 @@ using namespace KamataEngine;
 void GameScene::Initialize() {
 
 	// 3Dモデルデータの生成
-	model_ = Model::CreateFromOBJ("cube",true);
+	model_ = Model::CreateFromOBJ("cube", true);
 
 	// デバックカメラの生成
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -32,6 +32,14 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("Resources/AL3_mapchip.csv");
 
 	GenerateBlocks();
+
+	// カメラコントローラーの初期化
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	cameraController_->SetTarget(player_);
+	cameraController_->SetTargetCamera(&camera_);
+	cameraController_->SetMovableArea({11.0f, 88.0f, 6.5f, 100.0f});
+	cameraController_->Reset();
 }
 
 void GameScene::Update() {
@@ -78,6 +86,9 @@ void GameScene::Update() {
 
 	// プレイヤーの更新処理
 	player_->Update();
+
+	// カメラコントローラーの初期化
+	cameraController_->Update();
 }
 
 void GameScene::Draw() {

@@ -14,6 +14,10 @@ public:
 
 	~Player();
 
+	KamataEngine::WorldTransform& GetWorldTransform() { return worldTransform_; }
+
+	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
+
 private:
 	enum class LRDirection {
 		kRight,
