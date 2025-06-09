@@ -79,42 +79,42 @@ void Player::Update() {
 		}
 	} else {
 
-		// 着地フラグ
-		bool landing = false;
-
-		// 地面との当たり判定
-		// 下降中
-		if (velocity_.y < 0) {
-			// y座標が地面以下になったら着地
-			if (worldTransform_.translation_.y <= 1.0f) {
-				landing = true;
-			}
-		}
-
-		if (onGround_) {
-			// ジャンプ開始
-			if (velocity_.y > 0.0f) {
-				// 空中状態に移行
-				onGround_ = false;
-			}
-		} else {
-			// 着地
-			if (landing) {
-				// めりこみ排斥
-				worldTransform_.translation_.y = 1.0f;
-				// 摩擦で横方向速度が減衰する
-				velocity_.x *= (1.0f - kAttenuation_);
-				// 下方向速度をリセット
-				velocity_.y = 0.0f;
-				// 接地状態に移行
-				onGround_ = true;
-			}
-		}
 		// 落下速度
 		velocity_.y += -kGravityAcceleration;
 
 		// 落下速度制限
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
+	}
+
+	// 着地フラグ
+	bool landing = false;
+
+	// 地面との当たり判定
+	// 下降中
+	if (velocity_.y < 0) {
+		// y座標が地面以下になったら着地
+		if (worldTransform_.translation_.y <= 1.0f) {
+			landing = true;
+		}
+	}
+	if (onGround_) {
+		// ジャンプ開始
+		if (velocity_.y > 0.0f) {
+			// 空中状態に移行
+			onGround_ = false;
+		}
+	} else {
+		// 着地
+		if (landing) {
+			// めりこみ排斥
+			worldTransform_.translation_.y = 1.0f;
+			// 摩擦で横方向速度が減衰する
+			velocity_.x *= (1.0f - kAttenuation_);
+			// 下方向速度をリセット
+			velocity_.y = 0.0f;
+			// 接地状態に移行
+			onGround_ = true;
+		}
 	}
 
 	// 旋回制御
