@@ -2,7 +2,6 @@
 #include "KamataEngine.h"
 #include <cstdint>
 #include <vector>
-
 enum class MapChipType {
 	kBlank, // 空白
 	kBlock, // ブロック
@@ -15,6 +14,11 @@ struct MapChipData {
 class MapChipField {
 
 public:
+	struct IndexSet {
+		uint32_t xIndex;
+		uint32_t yIndex;
+	};
+
 	void ResetMapChipData();
 
 	void LoadMapChipCsv(const std::string& filePath);
@@ -26,6 +30,8 @@ public:
 	uint32_t GetNumBlockVertical() { return kNumBlockVertical; }
 
 	uint32_t GetNumBlockHorizontal() { return kNumBlockHorizontal; }
+
+	IndexSet GetMapChipIndexSetByPosition(const KamataEngine::Vector3& position);
 
 private:
 	// 1ブロックのサイズ

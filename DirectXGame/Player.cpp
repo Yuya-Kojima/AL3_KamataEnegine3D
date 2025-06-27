@@ -1,5 +1,7 @@
 #define NOMINMAX
 #include "Player.h"
+#include "MapChipField.h"
+#include "VectorMath.h"
 #include <algorithm>
 
 using namespace KamataEngine;
@@ -22,7 +24,20 @@ void Player::Initialize(Model* model, Vector3& position) {
 void Player::Update() {
 
 	if (onGround_) {
-		//if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+
+		// 移動入力
+		Move();
+
+		// 衝突情報を初期化
+		CollisionMapInfo collisionMapInfo;
+
+		// 移動量に速度の値をコピー
+		collisionMapInfo.moveAmount = velocity_;
+
+		// マップ衝突チェック
+		CheckMapCollision(collisionMapInfo);
+
+		// if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
 
 		//	// 左右加速
 		//	Vector3 acceleration = {};
@@ -221,4 +236,61 @@ void Player::Move() {
 			velocity_.x *= (1.0f - kAttenuation_);
 		}
 	}
+}
+
+void Player::CheckMapCollision(CollisionMapInfo& info) {
+	CheckMapCollisionUp(info);
+	CheckMapCollisionDown(info);
+	CheckMapCollisionRight(info);
+	CheckMapCollisionLeft(info);
+}
+
+void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
+
+	// 移動後の四つの角の座標
+	std::array<Vector3, kNumCorner> positionsNew;
+
+	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
+
+		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.moveAmount, static_cast<Corner>(i));
+	}
+
+	if (info.moveAmount.y <= 0) {
+		return;
+	}
+
+	MapChipType mapChipType;
+
+	// 真上の当たり判定を行う
+	bool hit = false;
+
+	// 左上点の判定
+	MapChipField::IndexSet indexSet;
+
+	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kLeftTop]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+
+	// 右上点の判定
+	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kRightTop]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+}
+
+Vector3 Player::CornerPosition(const KamataEngine::Vector3& center, Corner corner) {
+
+	Vector3 offsetTable[kNumCorner] = {
+	    {+kWidth / 2.0f, -kHeight / 2.0f, 0}, // kRightBottom
+	    {-kWidth / 2.0f, -kHeight / 2.0f, 0}, // kLeftBottom
+	    {+kWidth / 2.0f, +kHeight / 2.0f, 0}, // kRightTop
+	    {-kWidth / 2.0f, +kHeight / 2.0f, 0}  // kLeftTop
+	};
+
+	return center + offsetTable[static_cast<uint32_t>(corner)];
 }

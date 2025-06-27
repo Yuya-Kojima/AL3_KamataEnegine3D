@@ -8,10 +8,24 @@ class MapChipField;
 class Player {
 
 	struct CollisionMapInfo {
-		bool isHitCeiling = false; // 天井衝突フラグ
-		bool isGrounded = false;   // 着地フラグ
-		bool isHitWall = false;    // 壁接触フラグ
-		Vector3 moveAmount;        // 移動量
+		bool isHitCeiling = false;        // 天井衝突フラグ
+		bool isGrounded = false;          // 着地フラグ
+		bool isHitWall = false;           // 壁接触フラグ
+		KamataEngine::Vector3 moveAmount; // 移動量
+	};
+
+	enum class LRDirection {
+		kRight,
+		kLeft,
+	};
+
+	enum Corner {
+		kRightBottom, // 右下
+		kLeftBottom,  // 左下
+		kRightTop,    // 右上
+		kLeftTop,     // 左上
+
+		kNumCorner, // 要素数
 	};
 
 public:
@@ -31,14 +45,19 @@ public:
 
 	void Move();
 
-	void CheckMapCollision(CollisionMapInfo& info); // p13まで
+	void CheckMapCollision(CollisionMapInfo& info);
+
+	void CheckMapCollisionUp(CollisionMapInfo& info);
+
+	void CheckMapCollisionDown(CollisionMapInfo& info);
+
+	void CheckMapCollisionRight(CollisionMapInfo& info);
+
+	void CheckMapCollisionLeft(CollisionMapInfo& info);
+
+	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
 
 private:
-	enum class LRDirection {
-		kRight,
-		kLeft,
-	};
-
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
 
