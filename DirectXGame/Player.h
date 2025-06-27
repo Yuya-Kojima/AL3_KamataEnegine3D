@@ -3,7 +3,16 @@
 #include "WorldMatrixTransform.h"
 #include <numbers>
 
+class MapChipField;
+
 class Player {
+
+	struct CollisionMapInfo {
+		bool isHitCeiling = false; // 天井衝突フラグ
+		bool isGrounded = false;   // 着地フラグ
+		bool isHitWall = false;    // 壁接触フラグ
+		Vector3 moveAmount;        // 移動量
+	};
 
 public:
 	void Initialize(KamataEngine::Model* model, KamataEngine::Vector3& position);
@@ -17,6 +26,12 @@ public:
 	KamataEngine::WorldTransform& GetWorldTransform() { return worldTransform_; }
 
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
+
+	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
+
+	void Move();
+
+	void CheckMapCollision(CollisionMapInfo& info); // p13まで
 
 private:
 	enum class LRDirection {
@@ -65,4 +80,11 @@ private:
 
 	// ジャンプ初速(上方向)
 	static inline const float kJumpAcceleration = 0.5f;
+
+	// マップチップによるフィールド
+	MapChipField* mapChipField_ = nullptr;
+
+	// キャラクターの当たり判定サイズ
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
 };

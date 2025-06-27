@@ -24,12 +24,14 @@ void GameScene::Initialize() {
 
 	Vector3 playerPosition = mapChipField_->GetMatChipPositionByIndex(1, 18);
 
-	player_ = new Player();
-	player_->Initialize(modelPlayer_, playerPosition);
-
 	// マップチップフィールド
 	mapChipField_ = new MapChipField;
 	mapChipField_->LoadMapChipCsv("Resources/AL3_mapchip.csv");
+
+	player_ = new Player();
+	player_->Initialize(modelPlayer_, playerPosition);
+
+	player_->SetMapChipField(mapChipField_);
 
 	GenerateBlocks();
 

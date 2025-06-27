@@ -22,55 +22,55 @@ void Player::Initialize(Model* model, Vector3& position) {
 void Player::Update() {
 
 	if (onGround_) {
-		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+		//if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
 
-			// 左右加速
-			Vector3 acceleration = {};
+		//	// 左右加速
+		//	Vector3 acceleration = {};
 
-			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-				// 左移動中の右入力
-				if (velocity_.x < 0.0f) {
-					velocity_.x *= (1.0f - kAttenuation_);
-				}
-				acceleration.x += kAcceleration_;
+		//	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+		//		// 左移動中の右入力
+		//		if (velocity_.x < 0.0f) {
+		//			velocity_.x *= (1.0f - kAttenuation_);
+		//		}
+		//		acceleration.x += kAcceleration_;
 
-				if (lrDirection_ != LRDirection ::kRight) {
-					lrDirection_ = LRDirection::kRight;
+		//		if (lrDirection_ != LRDirection ::kRight) {
+		//			lrDirection_ = LRDirection::kRight;
 
-					// 旋回開始時の角度を記録
-					turnFirstRotationY_ = worldTransform_.rotation_.y;
+		//			// 旋回開始時の角度を記録
+		//			turnFirstRotationY_ = worldTransform_.rotation_.y;
 
-					// 旋回タイマーに時間を設定する
-					turnTimer_ = kTimeTurn;
-				}
-			} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-				// 右移動中の左入力
-				if (velocity_.x > 0.0f) {
-					// 速度と逆方向に入力中は急ブレーキ
-					velocity_.x *= (1.0f - kAttenuation_);
-				}
-				acceleration.x -= kAcceleration_;
-				if (lrDirection_ != LRDirection ::kLeft) {
-					lrDirection_ = LRDirection::kLeft;
+		//			// 旋回タイマーに時間を設定する
+		//			turnTimer_ = kTimeTurn;
+		//		}
+		//	} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+		//		// 右移動中の左入力
+		//		if (velocity_.x > 0.0f) {
+		//			// 速度と逆方向に入力中は急ブレーキ
+		//			velocity_.x *= (1.0f - kAttenuation_);
+		//		}
+		//		acceleration.x -= kAcceleration_;
+		//		if (lrDirection_ != LRDirection ::kLeft) {
+		//			lrDirection_ = LRDirection::kLeft;
 
-					// 旋回開始時の角度を記録
-					turnFirstRotationY_ = worldTransform_.rotation_.y;
+		//			// 旋回開始時の角度を記録
+		//			turnFirstRotationY_ = worldTransform_.rotation_.y;
 
-					// 旋回タイマーに時間を設定する
-					turnTimer_ = kTimeTurn;
-				}
-			}
+		//			// 旋回タイマーに時間を設定する
+		//			turnTimer_ = kTimeTurn;
+		//		}
+		//	}
 
-			// 加速　減速
-			velocity_ = Add(velocity_, acceleration);
+		//	// 加速　減速
+		//	velocity_ = Add(velocity_, acceleration);
 
-			// 最大速度制限
-			velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed_, kLimitRunSpeed_);
-		} else {
+		//	// 最大速度制限
+		//	velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed_, kLimitRunSpeed_);
+		//} else {
 
-			// 非入力時は移動減衰
-			velocity_.x *= (1.0f - kAttenuation_);
-		}
+		//	// 非入力時は移動減衰
+		//	velocity_.x *= (1.0f - kAttenuation_);
+		//}
 
 		if (Input::GetInstance()->PushKey(DIK_UP)) {
 
@@ -166,4 +166,59 @@ Player::~Player() {
 	delete model_;
 
 	//	delete worldTransform_;
+}
+
+void Player::Move() {
+
+	if (onGround_) {
+		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+
+			// 左右加速
+			Vector3 acceleration = {};
+
+			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+				// 左移動中の右入力
+				if (velocity_.x < 0.0f) {
+					velocity_.x *= (1.0f - kAttenuation_);
+				}
+				acceleration.x += kAcceleration_;
+
+				if (lrDirection_ != LRDirection ::kRight) {
+					lrDirection_ = LRDirection::kRight;
+
+					// 旋回開始時の角度を記録
+					turnFirstRotationY_ = worldTransform_.rotation_.y;
+
+					// 旋回タイマーに時間を設定する
+					turnTimer_ = kTimeTurn;
+				}
+			} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+				// 右移動中の左入力
+				if (velocity_.x > 0.0f) {
+					// 速度と逆方向に入力中は急ブレーキ
+					velocity_.x *= (1.0f - kAttenuation_);
+				}
+				acceleration.x -= kAcceleration_;
+				if (lrDirection_ != LRDirection ::kLeft) {
+					lrDirection_ = LRDirection::kLeft;
+
+					// 旋回開始時の角度を記録
+					turnFirstRotationY_ = worldTransform_.rotation_.y;
+
+					// 旋回タイマーに時間を設定する
+					turnTimer_ = kTimeTurn;
+				}
+			}
+
+			// 加速　減速
+			velocity_ = Add(velocity_, acceleration);
+
+			// 最大速度制限
+			velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed_, kLimitRunSpeed_);
+		} else {
+
+			// 非入力時は移動減衰
+			velocity_.x *= (1.0f - kAttenuation_);
+		}
+	}
 }
