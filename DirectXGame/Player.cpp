@@ -23,82 +23,28 @@ void Player::Initialize(Model* model, Vector3& position) {
 
 void Player::Update() {
 
+	// 移動入力
+	Move();
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo;
+
+	// 移動量に速度の値をコピー
+	collisionMapInfo.moveAmount = velocity_;
+
+	// マップ衝突チェック
+	CheckMapCollision(collisionMapInfo);
+
+	ApplyCollisionResult(collisionMapInfo);
+
+	HandleCeilingCollision(collisionMapInfo);
+
 	if (onGround_) {
-
-		// 移動入力
-		Move();
-
-		// 衝突情報を初期化
-		CollisionMapInfo collisionMapInfo;
-
-		// 移動量に速度の値をコピー
-		collisionMapInfo.moveAmount = velocity_;
-
-		// マップ衝突チェック
-		CheckMapCollision(collisionMapInfo);
-
-		// if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
-
-		//	// 左右加速
-		//	Vector3 acceleration = {};
-
-		//	if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
-		//		// 左移動中の右入力
-		//		if (velocity_.x < 0.0f) {
-		//			velocity_.x *= (1.0f - kAttenuation_);
-		//		}
-		//		acceleration.x += kAcceleration_;
-
-		//		if (lrDirection_ != LRDirection ::kRight) {
-		//			lrDirection_ = LRDirection::kRight;
-
-		//			// 旋回開始時の角度を記録
-		//			turnFirstRotationY_ = worldTransform_.rotation_.y;
-
-		//			// 旋回タイマーに時間を設定する
-		//			turnTimer_ = kTimeTurn;
-		//		}
-		//	} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
-		//		// 右移動中の左入力
-		//		if (velocity_.x > 0.0f) {
-		//			// 速度と逆方向に入力中は急ブレーキ
-		//			velocity_.x *= (1.0f - kAttenuation_);
-		//		}
-		//		acceleration.x -= kAcceleration_;
-		//		if (lrDirection_ != LRDirection ::kLeft) {
-		//			lrDirection_ = LRDirection::kLeft;
-
-		//			// 旋回開始時の角度を記録
-		//			turnFirstRotationY_ = worldTransform_.rotation_.y;
-
-		//			// 旋回タイマーに時間を設定する
-		//			turnTimer_ = kTimeTurn;
-		//		}
-		//	}
-
-		//	// 加速　減速
-		//	velocity_ = Add(velocity_, acceleration);
-
-		//	// 最大速度制限
-		//	velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed_, kLimitRunSpeed_);
-		//} else {
-
-		//	// 非入力時は移動減衰
-		//	velocity_.x *= (1.0f - kAttenuation_);
-		//}
-
 		if (Input::GetInstance()->PushKey(DIK_UP)) {
 
 			// ジャンプ初速
 			velocity_.y += kJumpAcceleration;
 		}
-	} else {
-
-		// 落下速度
-		velocity_.y += -kGravityAcceleration;
-
-		// 落下速度制限
-		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
 
 	// 着地フラグ
@@ -156,7 +102,7 @@ void Player::Update() {
 	}
 
 	// 移動
-	worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
+	// worldTransform_.translation_ = Add(worldTransform_.translation_, velocity_);
 
 	// 行列更新
 	WorldTransformUpdate(worldTransform_);
@@ -235,14 +181,21 @@ void Player::Move() {
 			// 非入力時は移動減衰
 			velocity_.x *= (1.0f - kAttenuation_);
 		}
+	} else {
+
+		// 落下速度
+		velocity_.y += -kGravityAcceleration;
+
+		// 落下速度制限
+		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 	}
 }
 
 void Player::CheckMapCollision(CollisionMapInfo& info) {
 	CheckMapCollisionUp(info);
-	CheckMapCollisionDown(info);
-	CheckMapCollisionRight(info);
-	CheckMapCollisionLeft(info);
+	// CheckMapCollisionDown(info);
+	// CheckMapCollisionRight(info);
+	// CheckMapCollisionLeft(info);
 }
 
 void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
@@ -281,6 +234,24 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 	if (mapChipType == MapChipType::kBlock) {
 		hit = true;
 	}
+
+	if (hit) {
+		// めり込みを排除する方向に移動量を設定する
+		indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kLeftTop]);
+
+		// ブロックの矩形を取得
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
+
+		float epsilon = 0.001f;
+		float characterTop = rect.bottom - worldTransform_.translation_.y;
+		float yMoveAmount = characterTop - kBlank - epsilon;
+
+		// Y方向の移動量を制限（0以下にならないように）
+		info.moveAmount.y = std::max(0.0f, yMoveAmount);
+
+		// フラグを立てる
+		info.isHitCeiling = true;
+	}
 }
 
 Vector3 Player::CornerPosition(const KamataEngine::Vector3& center, Corner corner) {
@@ -293,4 +264,17 @@ Vector3 Player::CornerPosition(const KamataEngine::Vector3& center, Corner corne
 	};
 
 	return center + offsetTable[static_cast<uint32_t>(corner)];
+}
+
+void Player::ApplyCollisionResult(const CollisionMapInfo& info) {
+
+	// 移動
+	worldTransform_.translation_ += info.moveAmount;
+}
+
+void Player::HandleCeilingCollision(const CollisionMapInfo& info) {
+
+	if (info.isHitCeiling) {
+		velocity_.y = 0;
+	}
 }

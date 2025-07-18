@@ -31,10 +31,20 @@ class Player {
 public:
 	void Initialize(KamataEngine::Model* model, KamataEngine::Vector3& position);
 
+	/// <summary>
+	/// 更新
+	/// </summary>
 	void Update();
 
+	/// <summary>
+	/// 描画
+	/// </summary>
+	/// <param name="camera"></param>
 	void Draw(KamataEngine::Camera& camera);
 
+	/// <summary>
+	/// デストラクタ
+	/// </summary>
 	~Player();
 
 	KamataEngine::WorldTransform& GetWorldTransform() { return worldTransform_; }
@@ -43,19 +53,48 @@ public:
 
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
 
+	/// <summary>
+	/// 移動
+	/// </summary>
 	void Move();
 
+	/// <summary>
+	/// マップ衝突判定
+	/// </summary>
+	/// <param name="info"></param>
 	void CheckMapCollision(CollisionMapInfo& info);
 
+	/// <summary>
+	/// マップ衝突判定上方向
+	/// </summary>
+	/// <param name="info"></param>
 	void CheckMapCollisionUp(CollisionMapInfo& info);
 
-	void CheckMapCollisionDown(CollisionMapInfo& info);
+	// void CheckMapCollisionDown(CollisionMapInfo& info);
 
-	void CheckMapCollisionRight(CollisionMapInfo& info);
+	// void CheckMapCollisionRight(CollisionMapInfo& info);
 
-	void CheckMapCollisionLeft(CollisionMapInfo& info);
+	// void CheckMapCollisionLeft(CollisionMapInfo& info);
 
+	/// <summary>
+	/// 指定した角の座標計算
+	/// </summary>
+	/// <param name="center"></param>
+	/// <param name="corner"></param>
+	/// <returns></returns>
 	KamataEngine::Vector3 CornerPosition(const KamataEngine::Vector3& center, Corner corner);
+
+	/// <summary>
+	/// 判定結果を反映して移動させる
+	/// </summary>
+	/// <param name="info"></param>
+	void ApplyCollisionResult(const CollisionMapInfo& info);
+
+	/// <summary>
+	/// 天井に接触している場合の処理
+	/// </summary>
+	/// <param name="info"></param>
+	void HandleCeilingCollision(const CollisionMapInfo& info);
 
 private:
 	// 3Dモデル
@@ -106,4 +145,6 @@ private:
 	// キャラクターの当たり判定サイズ
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
+
+	static inline const float kBlank = kHeight / 2.0f;
 };

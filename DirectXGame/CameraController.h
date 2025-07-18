@@ -63,7 +63,7 @@ private:
 	KamataEngine::Camera* targetCamera_ = nullptr;
 
 	// 追従対象とカメラ座標の差(オフセット)
-	KamataEngine::Vector3 targetOffset_{0.0f, 0.0f, -15.0f};
+	KamataEngine::Vector3 targetOffset_{0.0f, 0.0f, -17.0f};
 
 	// カメラの目標座標
 	KamataEngine::Vector3 targetPosition_;
