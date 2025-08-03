@@ -20,8 +20,11 @@ void CameraController::Update() {
 	// 追従対象のワールドトランスフォームを参照
 	const WorldTransform& targetWorldTransform = target_->GetWorldTransform();
 
+	Vector3 velocityBias = targetVelocity_;
+	velocityBias.y = 0.0f;
+
 	// 追従対象とオフセットと追従対象の速度からカメラの目標座標を計算
-	targetPosition_ = Add(Add(targetWorldTransform.translation_, targetOffset_), targetVelocity_ * kVelocityBias);
+	targetPosition_ = Add(Add(targetWorldTransform.translation_, targetOffset_), velocityBias * kVelocityBias);
 
 	// 座標補間
 	targetCamera_->translation_ = Lerp(targetCamera_->translation_, targetPosition_, kInterpolationRate);

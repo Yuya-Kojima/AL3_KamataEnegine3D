@@ -70,7 +70,7 @@ public:
 	/// <param name="info"></param>
 	void CheckMapCollisionUp(CollisionMapInfo& info);
 
-	// void CheckMapCollisionDown(CollisionMapInfo& info);
+	void CheckMapCollisionDown(CollisionMapInfo& info);
 
 	// void CheckMapCollisionRight(CollisionMapInfo& info);
 
@@ -95,6 +95,12 @@ public:
 	/// </summary>
 	/// <param name="info"></param>
 	void HandleCeilingCollision(const CollisionMapInfo& info);
+
+	/// <summary>
+	/// 接地状態の切り替え処理
+	/// </summary>
+	/// <param name="info"></param>
+	void UpdateGroundState(const CollisionMapInfo& info);
 
 private:
 	// 3Dモデル
@@ -137,7 +143,7 @@ private:
 	static inline const float kLimitFallSpeed = 0.3f;
 
 	// ジャンプ初速(上方向)
-	static inline const float kJumpAcceleration = 0.5f;
+	static inline const float kJumpAcceleration = 0.65f;
 
 	// マップチップによるフィールド
 	MapChipField* mapChipField_ = nullptr;
@@ -146,5 +152,9 @@ private:
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
 
-	static inline const float kBlank = kHeight / 2.0f;
+	// 着地時の速度減衰率
+	static inline const float kAttenuationLanding = 0.1f;
+
+	// 地面との吸着判定時の微小オフセット
+	static inline const float kGroundAdhesionOffset = 0.001f;
 };
