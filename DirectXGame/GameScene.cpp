@@ -42,6 +42,13 @@ void GameScene::Initialize() {
 	cameraController_->SetTargetCamera(&camera_);
 	cameraController_->SetMovableArea({11.0f, 88.0f, 6.5f, 100.0f});
 	cameraController_->Reset();
+
+	// Enemy モデルの生成
+	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
+
+	// Enemy の生成と初期化
+	enemy_ = new Enemy();
+	enemy_->Initialize(modelEnemy_, &camera_);
 }
 
 void GameScene::Update() {
@@ -91,6 +98,11 @@ void GameScene::Update() {
 
 	// カメラコントローラーの初期化
 	cameraController_->Update();
+
+	// 敵
+	if (enemy_) {
+		enemy_->Update();
+	}
 }
 
 void GameScene::Draw() {
@@ -118,6 +130,11 @@ void GameScene::Draw() {
 	// プレイヤーの描画
 	player_->Draw(camera_);
 
+	// 敵
+	if (enemy_) {
+		enemy_->Draw();
+	}
+
 	Model::PostDraw();
 }
 
@@ -141,6 +158,9 @@ GameScene::~GameScene() {
 			delete worldTransformBlock;
 		}
 	}
+
+	delete modelEnemy_;
+	delete enemy_;
 
 	worldTransformBlocks_.clear();
 }

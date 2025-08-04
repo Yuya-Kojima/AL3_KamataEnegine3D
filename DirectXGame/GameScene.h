@@ -1,5 +1,6 @@
 #pragma once
 #include "CameraController.h"
+#include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -55,4 +56,8 @@ private:
 
 	// カメラコントローラー
 	CameraController* cameraController_ = nullptr;
+
+	// Enemy
+	Enemy* enemy_ = nullptr;
+	KamataEngine::Model* modelEnemy_ = nullptr;
 };
