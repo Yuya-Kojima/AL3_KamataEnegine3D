@@ -262,10 +262,6 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
 
 	if (mapChipType == MapChipType::kBlock) {
-		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
-		float playerBottom = positionsNew[kLeftBottom].y;
-		DebugText::GetInstance()->ConsolePrintf("[L] playerBottom: %.3f, rectTop: %.3f\n", playerBottom, rect.top);
-
 		hit = true;
 	}
 
@@ -290,6 +286,8 @@ void Player::CheckMapCollisionDown(CollisionMapInfo& info) {
 		float yMoveAmount = rect.top - worldTransform_.translation_.y + (kHeight / 2.0f) + epsilon;
 		// Y方向の移動量を制限（0以下にならないように）
 		info.moveAmount.y = std::min(0.0f, yMoveAmount);
+
+		DebugText::GetInstance()->ConsolePrintf("bottomY=%.3f -> indexY=%d -> rect.top=%.3f\n", positionsNew[kLeftBottom].y, indexSet.yIndex, rect.top);
 
 		// フラグを立てる
 		info.isGrounded = true;
