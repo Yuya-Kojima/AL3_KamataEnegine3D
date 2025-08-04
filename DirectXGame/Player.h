@@ -65,16 +65,28 @@ public:
 	void CheckMapCollision(CollisionMapInfo& info);
 
 	/// <summary>
-	/// マップ衝突判定上方向
+	/// マップ衝突判定　上方向
 	/// </summary>
 	/// <param name="info"></param>
 	void CheckMapCollisionUp(CollisionMapInfo& info);
 
+	/// <summary>
+	/// マップ衝突判定　下方向
+	/// </summary>
+	/// <param name="info"></param>
 	void CheckMapCollisionDown(CollisionMapInfo& info);
 
-	// void CheckMapCollisionRight(CollisionMapInfo& info);
+	/// <summary>
+	/// マップ衝突判定　右方向
+	/// </summary>
+	/// <param name="info"></param>
+	void CheckMapCollisionRight(CollisionMapInfo& info);
 
-	// void CheckMapCollisionLeft(CollisionMapInfo& info);
+	/// <summary>
+	/// マップ衝突判定　左方向
+	/// </summary>
+	/// <param name="info"></param>
+	void CheckMapCollisionLeft(CollisionMapInfo& info);
 
 	/// <summary>
 	/// 指定した角の座標計算
@@ -101,6 +113,12 @@ public:
 	/// </summary>
 	/// <param name="info"></param>
 	void UpdateGroundState(const CollisionMapInfo& info);
+
+	/// <summary>
+	/// 壁に接触している場合の処理
+	/// </summary>
+	/// <param name="info"></param>
+	void HandleWallCollision(const CollisionMapInfo& info);
 
 private:
 	// 3Dモデル
@@ -156,5 +174,7 @@ private:
 	static inline const float kAttenuationLanding = 0.1f;
 
 	// 地面との吸着判定時の微小オフセット
-	static inline const float kGroundAdhesionOffset = 0.001f;
+	static inline const float kGroundAdhesionOffset = 0.01f;
+
+	static inline const float kAttenuationWall = 0.3f;
 };
