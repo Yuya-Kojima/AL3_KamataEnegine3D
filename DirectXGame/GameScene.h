@@ -1,5 +1,6 @@
 #pragma once
 #include "CameraController.h"
+#include "DeathParticles.h"
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
@@ -27,7 +28,23 @@ public:
 
 	void GenerateBlocks();
 
+	/// <summary>
+	/// すべての当たり判定を行う
+	/// </summary>
+	void CheckAllCollisions();
+
+	void ChangePhase();
+
 private:
+	// ゲームのフェーズ（型）
+	enum class Phase {
+		kPlay, // ゲームプレイ中
+		kDeath // デス演出中
+	};
+
+	// ゲームの現在フェーズ（変数）
+	Phase phase_ = Phase::kPlay;
+
 	// モデルデータ
 	KamataEngine::Model* model_ = nullptr;
 
@@ -58,6 +75,9 @@ private:
 	CameraController* cameraController_ = nullptr;
 
 	// Enemy
-	Enemy* enemy_ = nullptr;
+	std::list<Enemy*> enemies_;
 	KamataEngine::Model* modelEnemy_ = nullptr;
+
+	KamataEngine::Model* modelDeathParticles = nullptr;
+	DeathParticles* deathParticles_ = nullptr;
 };

@@ -1,9 +1,12 @@
 #pragma once
+#include "AABB.h"
 #include "KamataEngine.h"
 #include "WorldMatrixTransform.h"
 #include <numbers>
 
 class MapChipField;
+
+class Enemy;
 
 class Player {
 
@@ -120,6 +123,24 @@ public:
 	/// <param name="info"></param>
 	void HandleWallCollision(const CollisionMapInfo& info);
 
+	/// <summary>
+	/// ワールド座標を取得
+	/// </summary>
+	/// <returns></returns>
+	KamataEngine::Vector3 GetWorldPosition();
+
+	/// <summary>
+	/// AABBを取得
+	/// </summary>
+	/// <returns></returns>
+	AABB GetAABB();
+
+	// 衝突応答
+	void OnCollision(const Enemy* enemy);
+
+	// デスフラグのgetter
+	bool IsDead() const { return isDead_; }
+
 private:
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
@@ -177,4 +198,6 @@ private:
 	static inline const float kGroundAdhesionOffset = 0.01f;
 
 	static inline const float kAttenuationWall = 0.3f;
+
+	bool isDead_ = false; // デスフラグ
 };

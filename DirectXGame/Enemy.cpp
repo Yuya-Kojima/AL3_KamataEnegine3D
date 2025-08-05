@@ -1,12 +1,12 @@
 #include "Enemy.h"
 
-void Enemy::Initialize(Model* model, Camera* camera) {
+void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
 	model_ = model;
 	camera_ = camera;
 	worldTransform_.Initialize();
 
 	// 初期座標
-	worldTransform_.translation_ = {14.0f, 1.0f, 0.0f};
+	worldTransform_.translation_ = position;
 
 	// 自キャラと逆向き（例：左を向く）
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
@@ -41,4 +41,17 @@ void Enemy::Draw() {
 	model_->Draw(worldTransform_, *camera_);
 
 	Model::PostDraw();
+}
+
+void Enemy::OnCollision(const Player* player) { (void)player; }
+
+AABB Enemy::GetAABB() {
+	Vector3 worldPos = worldTransform_.translation_;
+
+	AABB aabb;
+
+	aabb.min = {worldPos.x - kWidth / 2.0f, worldPos.y - kHeight / 2.0f, worldPos.z - kWidth / 2.0f};
+	aabb.max = {worldPos.x + kWidth / 2.0f, worldPos.y + kHeight / 2.0f, worldPos.z + kWidth / 2.0f};
+
+	return aabb;
 }

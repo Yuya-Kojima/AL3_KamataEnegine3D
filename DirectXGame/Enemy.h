@@ -1,9 +1,12 @@
 #pragma once
+#include "AABB.h"
 #include "KamataEngine.h"
 #include "WorldMatrixTransform.h"
 #include <numbers>
 
 using namespace KamataEngine;
+
+class Player;
 
 /// <summary>
 /// 敵
@@ -11,11 +14,20 @@ using namespace KamataEngine;
 class Enemy {
 
 public:
-	void Initialize(Model* model, Camera* camera);
+	void Initialize(Model* model, Camera* camera, Vector3& position);
 
 	void Update();
 
 	void Draw();
+
+	// 衝突応答
+	void OnCollision(const Player* player);
+
+	/// <summary>
+	/// AABBを取得
+	/// </summary>
+	/// <returns></returns>
+	AABB GetAABB();
 
 private:
 	// ワールド変換データ
@@ -42,4 +54,7 @@ private:
 
 	// 経過時間（アニメーション用）
 	float walkTimer_ = 0.0f;
+
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
 };

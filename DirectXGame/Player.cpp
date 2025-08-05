@@ -18,6 +18,8 @@ void Player::Initialize(Model* model, Vector3& position) {
 
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 
+	WorldTransformUpdate(worldTransform_);
+
 	// カメラの初期化
 	camera_.Initialize();
 }
@@ -85,8 +87,6 @@ void Player::Update() {
 
 	// 行列更新
 	WorldTransformUpdate(worldTransform_);
-
-	DebugText::GetInstance()->ConsolePrintf("onGround: %d, vel.x: %.3f, trans.y: %.3f\n", onGround_ ? 1 : 0, velocity_.x, worldTransform_.translation_.y);
 }
 
 void Player::Draw(Camera& camera) {
@@ -519,4 +519,33 @@ void Player::HandleWallCollision(const CollisionMapInfo& info) {
 	if (info.isHitWall) {
 		velocity_.x *= (1.0f - kAttenuationWall);
 	}
+}
+
+KamataEngine::Vector3 Player::GetWorldPosition() {
+	Vector3 worldPos;
+
+	// ワールド行列の平行移動成分を取り出す（ワールド座標）
+	worldPos.x = worldTransform_.matWorld_.m[3][0]; // X
+	worldPos.y = worldTransform_.matWorld_.m[3][1]; // Y
+	worldPos.z = worldTransform_.matWorld_.m[3][2]; // Z
+
+	return worldPos;
+}
+
+AABB Player::GetAABB() { // 中心座標（ワールド座標）
+	Vector3 worldPos = GetWorldPosition();
+
+	AABB aabb;
+
+	aabb.min = {worldPos.x - kWidth / 2.0f, worldPos.y - kHeight / 2.0f, worldPos.z - kWidth / 2.0f};
+	aabb.max = {worldPos.x + kWidth / 2.0f, worldPos.y + kHeight / 2.0f, worldPos.z + kWidth / 2.0f};
+
+	return aabb;
+}
+
+void Player::OnCollision(const Enemy* enemy) {
+	(void)enemy;
+
+	// 敵に当たったらデスフラグを立てる
+	isDead_ = true;
 }
