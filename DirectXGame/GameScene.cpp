@@ -51,7 +51,7 @@ void GameScene::Initialize() {
 		Enemy* newEnemy = new Enemy();
 
 		// 一体ずつ異なる座標をセット（例：X座標を10ずつずらす）
-		Vector3 enemyPosition = {14.0f - i * 10.0f, 1.0f, 0.0f};
+		Vector3 enemyPosition = {14.0f + i * 10.0f, 1.0f, 0.0f};
 
 		newEnemy->Initialize(modelEnemy_, &camera_, enemyPosition);
 
@@ -64,12 +64,49 @@ void GameScene::Initialize() {
 	deathParticles_ = new DeathParticles();
 	deathParticles_->Initialize(modelDeathParticles, &camera_, player_->GetWorldPosition());
 
-	phase_ = Phase::kPlay; // フェーズ初期化
+	phase_ = Phase::kFadeIn; // フェーズ初期化
+
+	fade_ = new Fade();
+	fade_->Initialize();
+	fade_->Start(Fade::Status::FadeIn, kFadeDuration);
 }
 
 void GameScene::Update() {
 
 	switch (phase_) {
+	case Phase::kFadeIn:
+		fade_->Update();
+
+		// 天球の更新処理
+		skydome_->Update();
+
+		// プレイヤーの更新処理
+		player_->Update();
+
+		// 敵
+		for (Enemy* enemy : enemies_) {
+			enemy->Update();
+		}
+
+		cameraController_->Update();
+		camera_.UpdateMatrix();
+
+		// ブロックの更新
+		for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
+			for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
+
+				if (!worldTransformBlock) {
+					continue;
+				}
+
+				WorldTransformUpdate(*worldTransformBlock);
+			}
+		}
+
+		if (fade_->IsFinished()) {
+			phase_ = Phase::kPlay;
+		}
+		break;
 	case Phase::kPlay:
 
 		// 天球の更新処理
@@ -168,11 +205,19 @@ void GameScene::Update() {
 				WorldTransformUpdate(*worldTransformBlock);
 			}
 		}
-		break;
-	}
 
-	if (phase_ == Phase::kDeath && deathParticles_ && deathParticles_->IsFinished()) {
-		finished_ = true;
+		if (deathParticles_ && deathParticles_->IsFinished()) {
+			fade_->Start(Fade::Status::FadeOut, kFadeDuration);
+			phase_ = Phase::kFadeOut;
+		}
+		break;
+
+	case Phase::kFadeOut:
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			finished_ = true;
+		}
+		break;
 	}
 }
 
@@ -199,7 +244,7 @@ void GameScene::Draw() {
 	skydome_->Draw(camera_);
 
 	// プレイヤーの描画
-	if (phase_ == Phase::kPlay) {
+	if (phase_ == Phase::kFadeIn || phase_ == Phase::kPlay) {
 		player_->Draw(camera_);
 	}
 
@@ -211,6 +256,8 @@ void GameScene::Draw() {
 	if (deathParticles_) {
 		deathParticles_->Draw();
 	}
+
+	fade_->Draw();
 
 	Model::PostDraw();
 }

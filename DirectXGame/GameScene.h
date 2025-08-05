@@ -2,6 +2,7 @@
 #include "CameraController.h"
 #include "DeathParticles.h"
 #include "Enemy.h"
+#include "Fade.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -40,12 +41,14 @@ public:
 private:
 	// ゲームのフェーズ（型）
 	enum class Phase {
-		kPlay, // ゲームプレイ中
-		kDeath // デス演出中
+		kFadeIn, // フェードイン
+		kPlay,   // ゲームプレイ中
+		kDeath,  // 死亡演出
+		kFadeOut // フェードアウト
 	};
 
 	// ゲームの現在フェーズ（変数）
-	Phase phase_ = Phase::kPlay;
+	Phase phase_ = Phase::kFadeIn;
 
 	// モデルデータ
 	KamataEngine::Model* model_ = nullptr;
@@ -84,4 +87,7 @@ private:
 	DeathParticles* deathParticles_ = nullptr;
 
 	bool finished_ = false;
+
+	Fade* fade_ = nullptr;
+	const float kFadeDuration = 1.0f;
 };
