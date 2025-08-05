@@ -35,6 +35,8 @@ public:
 
 	void ChangePhase();
 
+	bool IsFinished() const { return finished_; }
+
 private:
 	// ゲームのフェーズ（型）
 	enum class Phase {
@@ -80,4 +82,6 @@ private:
 
 	KamataEngine::Model* modelDeathParticles = nullptr;
 	DeathParticles* deathParticles_ = nullptr;
+
+	bool finished_ = false;
 };

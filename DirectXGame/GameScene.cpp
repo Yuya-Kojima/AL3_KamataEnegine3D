@@ -170,6 +170,10 @@ void GameScene::Update() {
 		}
 		break;
 	}
+
+	if (phase_ == Phase::kDeath && deathParticles_ && deathParticles_->IsFinished()) {
+		finished_ = true;
+	}
 }
 
 void GameScene::Draw() {
