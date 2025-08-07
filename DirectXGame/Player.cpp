@@ -26,67 +26,45 @@ void Player::Initialize(Model* model, Vector3& position) {
 
 void Player::Update() {
 
-	// 移動入力
-	Move();
+	if (behaviorRequest_ != Behavior::kUnknown) {
+		// ふるまいを変更する
+		behavior_ = behaviorRequest_;
 
-	// 衝突情報を初期化
-	CollisionMapInfo collisionMapInfo;
+		// 各ふるまいごとの初期化を実行
+		switch (behavior_) {
+		case Behavior::kRoot:
+		default:
 
-	// 移動量に速度の値をコピー
-	collisionMapInfo.moveAmount = velocity_;
+			BehaviorRootInitialize();
+			BehaviorRootUpdate();
 
-	// マップ衝突チェック
-	CheckMapCollision(collisionMapInfo);
+			break;
 
-	// 判定結果を反映して移動させる
-	ApplyCollisionResult(collisionMapInfo);
+		case Behavior::kAttack:
 
-	// 天井接触判定
-	HandleCeilingCollision(collisionMapInfo);
+			BehaviorAttackInitialize();
+			BehaviorAttackUpdate();
 
-	// 壁に接触した場合
-	HandleWallCollision(collisionMapInfo);
-
-	// 接地判定
-	UpdateGroundState(collisionMapInfo);
-
-	//// 着地フラグ
-	// bool landing = false;
-
-	//// 地面との当たり判定
-	//// 下降中
-	// if (velocity_.y < 0) {
-	//	// y座標が地面以下になったら着地
-	//	if (worldTransform_.translation_.y <= 1.0f) {
-	//		landing = true;
-	//	}
-	// }
-
-	// 旋回制御
-	if (turnTimer_ > 0.0f) {
-
-		turnTimer_ -= 0.03f;
-
-		// 左右の自キャラ角度テーブル
-		float destinationRotationYTable[] = {
-		    std::numbers::pi_v<float> / 2.0f,
-		    std::numbers::pi_v<float> * 3.0f / 2.0f,
-		};
-
-		// 状況に応じた
-		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
-
-		float t = 1.0f - (turnTimer_ / kTimeTurn);
-
-		// EaseInOut
-		float easedT = t * t * (3.0f - 2.0f * t);
-
-		// 自キャラの角度を設定する
-		worldTransform_.rotation_.y = (1.0f - easedT) * turnFirstRotationY_ + easedT * destinationRotationY;
+			break;
+		}
+		// ふるまいリクエストをリセット
+		behaviorRequest_ = Behavior::kUnknown;
 	}
 
-	// 行列更新
-	WorldTransformUpdate(worldTransform_);
+	switch (behavior_) {
+	case Behavior::kRoot:
+	default:
+
+		BehaviorRootUpdate();
+
+		break;
+
+	case Behavior::kAttack:
+
+		BehaviorAttackUpdate();
+
+		break;
+	}
 }
 
 void Player::Draw(Camera& camera) {
@@ -548,4 +526,147 @@ void Player::OnCollision(const Enemy* enemy) {
 
 	// 敵に当たったらデスフラグを立てる
 	isDead_ = true;
+}
+
+void Player::BehaviorRootInitialize() {}
+
+void Player::BehaviorRootUpdate() {
+
+	// 移動入力
+	Move();
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo;
+
+	// 移動量に速度の値をコピー
+	collisionMapInfo.moveAmount = velocity_;
+
+	// マップ衝突チェック
+	CheckMapCollision(collisionMapInfo);
+
+	// 判定結果を反映して移動させる
+	ApplyCollisionResult(collisionMapInfo);
+
+	// 天井接触判定
+	HandleCeilingCollision(collisionMapInfo);
+
+	// 壁に接触した場合
+	HandleWallCollision(collisionMapInfo);
+
+	// 接地判定
+	UpdateGroundState(collisionMapInfo);
+
+	// 旋回制御
+	if (turnTimer_ > 0.0f) {
+
+		turnTimer_ -= 0.03f;
+
+		// 左右の自キャラ角度テーブル
+		float destinationRotationYTable[] = {
+		    std::numbers::pi_v<float> / 2.0f,
+		    std::numbers::pi_v<float> * 3.0f / 2.0f,
+		};
+
+		// 状況に応じた
+		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
+
+		float t = 1.0f - (turnTimer_ / kTimeTurn);
+
+		// EaseInOut
+		float easedT = t * t * (3.0f - 2.0f * t);
+
+		// 自キャラの角度を設定する
+		worldTransform_.rotation_.y = (1.0f - easedT) * turnFirstRotationY_ + easedT * destinationRotationY;
+	}
+
+	// 攻撃キーを押したら
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+		// 攻撃ビヘイビアをリクエスト
+		behaviorRequest_ = Behavior::kAttack;
+	}
+
+	// 行列更新
+	WorldTransformUpdate(worldTransform_);
+}
+
+void Player::BehaviorAttackInitialize() { attackParameter_ = 0; }
+
+void Player::BehaviorAttackUpdate() {
+
+	// 移動入力
+	Move();
+
+	worldTransform_.translation_.x += 0.25f;
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo;
+
+	// 移動量に速度の値をコピー
+	collisionMapInfo.moveAmount = velocity_;
+
+	// マップ衝突チェック
+	CheckMapCollision(collisionMapInfo);
+
+	// 判定結果を反映して移動させる
+	ApplyCollisionResult(collisionMapInfo);
+
+	// 天井接触判定
+	HandleCeilingCollision(collisionMapInfo);
+
+	// 壁に接触した場合
+	HandleWallCollision(collisionMapInfo);
+
+	// 接地判定
+	UpdateGroundState(collisionMapInfo);
+
+	// 旋回制御
+	if (turnTimer_ > 0.0f) {
+
+		turnTimer_ -= 0.03f;
+
+		// 左右の自キャラ角度テーブル
+		float destinationRotationYTable[] = {
+		    std::numbers::pi_v<float> / 2.0f,
+		    std::numbers::pi_v<float> * 3.0f / 2.0f,
+		};
+
+		// 状況に応じた
+		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
+
+		float t = 1.0f - (turnTimer_ / kTimeTurn);
+
+		// EaseInOut
+		float easedT = t * t * (3.0f - 2.0f * t);
+
+		// 自キャラの角度を設定する
+		worldTransform_.rotation_.y = (1.0f - easedT) * turnFirstRotationY_ + easedT * destinationRotationY;
+	}
+
+	attackParameter_++;
+
+	// 既定の時間経過で攻撃終了して通常状態に戻す
+	if (attackParameter_ >= 10) {
+		behaviorRequest_ = Behavior::kRoot;
+	}
+
+	switch (attackPhase_) {
+		// 溜め
+	case AttackPhase::Charge:
+	default:
+
+		break;
+
+		// 突進
+	case AttackPhase::Dash:
+
+		break;
+
+		// 余韻
+	case AttackPhase::Recover:
+
+		break;
+	}
+
+	// 行列更新
+	WorldTransformUpdate(worldTransform_);
 }

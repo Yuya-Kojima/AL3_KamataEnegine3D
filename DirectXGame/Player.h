@@ -141,7 +141,34 @@ public:
 	// デスフラグのgetter
 	bool IsDead() const { return isDead_; }
 
+	// 通常行動初期化
+	void BehaviorRootInitialize();
+
+	// 通常行動更新
+	void BehaviorRootUpdate();
+
+	// 攻撃行動初期化
+	void BehaviorAttackInitialize();
+
+	// 攻撃行動更新
+	void BehaviorAttackUpdate();
+
 private:
+	enum class Behavior {
+		kRoot,    // 通常状態
+		kAttack,  // 攻撃中
+		kUnknown, // 変更リクエストがない状態
+	};
+
+	// 攻撃フェーズ
+	enum class AttackPhase {
+		Charge,  // 溜め
+		Dash,    // 突進
+		Recover, // 余韻
+	};
+
+	AttackPhase attackPhase_;
+
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
 
@@ -200,4 +227,13 @@ private:
 	static inline const float kAttenuationWall = 0.3f;
 
 	bool isDead_ = false; // デスフラグ
+
+	// ふるまい
+	Behavior behavior_ = Behavior::kRoot;
+
+	// 次のふるまいリクエスト
+	Behavior behaviorRequest_ = Behavior::kUnknown;
+
+	// 攻撃ギミックの経過時間カウンター
+	uint32_t attackParameter_ = 0;
 };
