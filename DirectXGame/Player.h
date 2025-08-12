@@ -1,5 +1,6 @@
 #pragma once
 #include "AABB.h"
+#include "Easing.h"
 #include "KamataEngine.h"
 #include "WorldMatrixTransform.h"
 #include <numbers>
@@ -200,7 +201,7 @@ private:
 
 	static inline const float kAttenuation_ = 0.1f;
 
-	static inline const float kLimitRunSpeed_ = 0.3f;
+	static inline const float kLimitRunSpeed_ = 0.2f;
 
 	// 重力加速度(下方向)
 	static inline const float kGravityAcceleration = 0.05f;
@@ -236,4 +237,16 @@ private:
 
 	// 攻撃ギミックの経過時間カウンター
 	uint32_t attackParameter_ = 0;
+
+	// 溜め動作時間
+	uint32_t chargeTimer_ = 10;
+
+	// 突進時間
+	uint32_t dashTimer_ = 5;
+
+	// 余韻時間
+	uint32_t recoverTimer_ = 5;
+
+	// 攻撃中速度
+	KamataEngine::Vector3 attackVelocity_ = {1.0f, 0.0f, 0.0f};
 };

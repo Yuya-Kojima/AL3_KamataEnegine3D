@@ -77,7 +77,8 @@ void Player::Draw(Camera& camera) {
 	// 3Dモデル描画
 	model_->Draw(worldTransform_, camera);
 	// DebugText::GetInstance()->ConsolePrintf("world.x: %.3f  world.y: %.3f\n", worldTransform_.translation_.x, worldTransform_.translation_.y);
-
+	// DebugText::GetInstance()->ConsolePrintf("attackPhase: %d\n", static_cast<int>(attackPhase_));
+	// DebugText::GetInstance()->ConsolePrintf("behavior: %d\n", static_cast<int>(behavior_));
 	Model::PostDraw();
 }
 
@@ -589,20 +590,103 @@ void Player::BehaviorRootUpdate() {
 	WorldTransformUpdate(worldTransform_);
 }
 
-void Player::BehaviorAttackInitialize() { attackParameter_ = 0; }
+void Player::BehaviorAttackInitialize() {
+	attackParameter_ = 0;
+	attackPhase_ = AttackPhase::Charge;
+	velocity_ = {};
+}
 
 void Player::BehaviorAttackUpdate() {
 
 	// 移動入力
-	Move();
-
-	worldTransform_.translation_.x += 0.25f;
+	// Move();
 
 	// 衝突情報を初期化
 	CollisionMapInfo collisionMapInfo;
 
 	// 移動量に速度の値をコピー
 	collisionMapInfo.moveAmount = velocity_;
+
+	attackParameter_++;
+
+	// 既定の時間経過で攻撃終了して通常状態に戻す
+	// if (attackParameter_ >= 10) {
+	//	behaviorRequest_ = Behavior::kRoot;
+	//}
+
+	switch (attackPhase_) {
+		// 溜め
+	case AttackPhase::Charge:
+	default: {
+
+		float t = static_cast<float>(attackParameter_) / chargeTimer_;
+		worldTransform_.scale_.z = EaseOut(1.0f, 0.3f, t);
+		worldTransform_.scale_.y = EaseOut(1.0f, 1.6f, t);
+
+		// 前進方向へ移行
+		if (attackParameter_ >= chargeTimer_) {
+			attackPhase_ = AttackPhase::Dash;
+			attackParameter_ = 0; // カウンターリセット
+		}
+
+		break;
+	}
+
+		// 突進
+	case AttackPhase::Dash: {
+
+		float t = static_cast<float>(attackParameter_) / dashTimer_;
+		worldTransform_.scale_.z = EaseOut(0.3f, 1.3f, t);
+		worldTransform_.scale_.y = EaseIn(1.6f, 0.7f, t);
+
+		// 余韻動作へ移行
+		if (attackParameter_ >= dashTimer_) {
+			attackPhase_ = AttackPhase::Recover;
+			attackParameter_ = 0; // カウンターリセット
+		}
+
+		break;
+	}
+
+		// 余韻
+	case AttackPhase::Recover: {
+
+		float t = static_cast<float>(attackParameter_) / recoverTimer_;
+		worldTransform_.scale_.z = EaseOut(1.3f, 1.0f, t);
+		worldTransform_.scale_.y = EaseIn(0.7f, 1.0f, t);
+
+		// 攻撃動作終了
+		if (attackParameter_ >= recoverTimer_) {
+			attackPhase_ = AttackPhase::Charge;
+			attackParameter_ = 0; // カウンターリセット
+			behaviorRequest_ = Behavior::kRoot;
+		}
+
+		break;
+	}
+	}
+
+	// 攻撃動作用の速度
+	Vector3 velocity{};
+
+	// 攻撃フェーズごとの更新処理
+	switch (attackPhase_) {
+
+	case AttackPhase::Dash:
+		//if (worldTransform_.rotation_.y > std::numbers::pi_v<float> / 2.0f && worldTransform_.rotation_.y < std::numbers::pi_v<float> / 2.0f) {
+		//	velocity = +attackVelocity_;
+		//} else {
+		//	velocity = -attackVelocity_;
+		//}
+
+		    float score = std::cos(worldTransform_.rotation_.y - std::numbers::pi_v<float> * 0.5f);
+		velocity = (score >= 0.0f) ? (+attackVelocity_) : (-attackVelocity_);
+		break;
+
+		break;
+	}
+
+	collisionMapInfo.moveAmount = velocity;
 
 	// マップ衝突チェック
 	CheckMapCollision(collisionMapInfo);
@@ -640,31 +724,6 @@ void Player::BehaviorAttackUpdate() {
 
 		// 自キャラの角度を設定する
 		worldTransform_.rotation_.y = (1.0f - easedT) * turnFirstRotationY_ + easedT * destinationRotationY;
-	}
-
-	attackParameter_++;
-
-	// 既定の時間経過で攻撃終了して通常状態に戻す
-	if (attackParameter_ >= 10) {
-		behaviorRequest_ = Behavior::kRoot;
-	}
-
-	switch (attackPhase_) {
-		// 溜め
-	case AttackPhase::Charge:
-	default:
-
-		break;
-
-		// 突進
-	case AttackPhase::Dash:
-
-		break;
-
-		// 余韻
-	case AttackPhase::Recover:
-
-		break;
 	}
 
 	// 行列更新
