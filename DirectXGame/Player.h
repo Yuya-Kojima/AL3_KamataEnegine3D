@@ -33,7 +33,7 @@ class Player {
 	};
 
 public:
-	void Initialize(KamataEngine::Model* model, KamataEngine::Vector3& position);
+	void Initialize(KamataEngine::Model* model, KamataEngine::Model* modelAttack, KamataEngine::Vector3& position);
 
 	/// <summary>
 	/// 更新
@@ -249,4 +249,9 @@ private:
 
 	// 攻撃中速度
 	KamataEngine::Vector3 attackVelocity_ = {1.0f, 0.0f, 0.0f};
+
+	// 攻撃エフェクト
+	KamataEngine::Model* modelAttack_ = nullptr;
+	KamataEngine::WorldTransform worldTransformAttack_;
+	bool attackEffectVisible_ = false;
 };

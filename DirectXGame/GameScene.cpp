@@ -25,11 +25,12 @@ void GameScene::Initialize() {
 
 	// プレイヤーの初期化
 	modelPlayer_ = Model::CreateFromOBJ("player", true);
+	attackPlayer_ = Model::CreateFromOBJ("attackEffect", true);
 
 	Vector3 playerPosition = mapChipField_->GetMatChipPositionByIndex(1, 18);
 
 	player_ = new Player();
-	player_->Initialize(modelPlayer_, playerPosition);
+	player_->Initialize(modelPlayer_, attackPlayer_, playerPosition);
 
 	player_->SetMapChipField(mapChipField_);
 

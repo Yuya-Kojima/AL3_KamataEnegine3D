@@ -6,7 +6,7 @@
 
 using namespace KamataEngine;
 
-void Player::Initialize(Model* model, Vector3& position) {
+void Player::Initialize(Model* model, Model* modelAttack, Vector3& position) {
 
 	// 3Dモデルの初期化
 	model_ = model;
@@ -19,6 +19,12 @@ void Player::Initialize(Model* model, Vector3& position) {
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 
 	WorldTransformUpdate(worldTransform_);
+
+	modelAttack_ = modelAttack;
+	worldTransformAttack_.Initialize();
+	attackEffectVisible_ = false;
+
+	WorldTransformUpdate(worldTransformAttack_);
 
 	// カメラの初期化
 	camera_.Initialize();
@@ -76,9 +82,11 @@ void Player::Draw(Camera& camera) {
 
 	// 3Dモデル描画
 	model_->Draw(worldTransform_, camera);
-	// DebugText::GetInstance()->ConsolePrintf("world.x: %.3f  world.y: %.3f\n", worldTransform_.translation_.x, worldTransform_.translation_.y);
-	// DebugText::GetInstance()->ConsolePrintf("attackPhase: %d\n", static_cast<int>(attackPhase_));
-	// DebugText::GetInstance()->ConsolePrintf("behavior: %d\n", static_cast<int>(behavior_));
+
+	 if (behavior_ == Behavior::kAttack) {
+	modelAttack_->Draw(worldTransformAttack_, camera);
+	}
+
 	Model::PostDraw();
 }
 
@@ -598,9 +606,6 @@ void Player::BehaviorAttackInitialize() {
 
 void Player::BehaviorAttackUpdate() {
 
-	// 移動入力
-	// Move();
-
 	// 衝突情報を初期化
 	CollisionMapInfo collisionMapInfo;
 
@@ -608,11 +613,6 @@ void Player::BehaviorAttackUpdate() {
 	collisionMapInfo.moveAmount = velocity_;
 
 	attackParameter_++;
-
-	// 既定の時間経過で攻撃終了して通常状態に戻す
-	// if (attackParameter_ >= 10) {
-	//	behaviorRequest_ = Behavior::kRoot;
-	//}
 
 	switch (attackPhase_) {
 		// 溜め
@@ -673,13 +673,13 @@ void Player::BehaviorAttackUpdate() {
 	switch (attackPhase_) {
 
 	case AttackPhase::Dash:
-		//if (worldTransform_.rotation_.y > std::numbers::pi_v<float> / 2.0f && worldTransform_.rotation_.y < std::numbers::pi_v<float> / 2.0f) {
+		// if (worldTransform_.rotation_.y > std::numbers::pi_v<float> / 2.0f && worldTransform_.rotation_.y < std::numbers::pi_v<float> / 2.0f) {
 		//	velocity = +attackVelocity_;
-		//} else {
+		// } else {
 		//	velocity = -attackVelocity_;
-		//}
+		// }
 
-		    float score = std::cos(worldTransform_.rotation_.y - std::numbers::pi_v<float> * 0.5f);
+		float score = std::cos(worldTransform_.rotation_.y - std::numbers::pi_v<float> * 0.5f);
 		velocity = (score >= 0.0f) ? (+attackVelocity_) : (-attackVelocity_);
 		break;
 
@@ -728,4 +728,15 @@ void Player::BehaviorAttackUpdate() {
 
 	// 行列更新
 	WorldTransformUpdate(worldTransform_);
+
+	worldTransformAttack_.translation_ = worldTransform_.translation_;
+
+	if (lrDirection_ == LRDirection::kRight) {
+		worldTransformAttack_.rotation_.y = -std::numbers::pi_v<float> / 2.0f;
+	} else {
+		worldTransformAttack_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+	}
+
+	// worldTransformAttack_.rotation_.y += std::numbers::pi_v<float>;
+	WorldTransformUpdate(worldTransformAttack_);
 }
