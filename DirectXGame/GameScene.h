@@ -3,6 +3,7 @@
 #include "DeathParticles.h"
 #include "Enemy.h"
 #include "Fade.h"
+#include "HitEffect.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -37,6 +38,8 @@ public:
 	void ChangePhase();
 
 	bool IsFinished() const { return finished_; }
+
+	void CreateHitEffect(const Vector3& origin);
 
 private:
 	// ゲームのフェーズ（型）
@@ -91,4 +94,8 @@ private:
 
 	Fade* fade_ = nullptr;
 	const float kFadeDuration = 1.0f;
+
+	// ヒットエフェクト
+	std::list<HitEffect*> hitEffects_;
+	KamataEngine::Model* modelHitEffect_ = nullptr;
 };

@@ -508,7 +508,7 @@ void Player::HandleWallCollision(const CollisionMapInfo& info) {
 	}
 }
 
-KamataEngine::Vector3 Player::GetWorldPosition() {
+KamataEngine::Vector3 Player::GetWorldPosition() const {
 	Vector3 worldPos;
 
 	// ワールド行列の平行移動成分を取り出す（ワールド座標）

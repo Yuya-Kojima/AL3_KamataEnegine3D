@@ -56,6 +56,8 @@ void GameScene::Initialize() {
 
 		newEnemy->Initialize(modelEnemy_, &camera_, enemyPosition);
 
+		newEnemy->SetGameScene(this);
+
 		enemies_.push_back(newEnemy);
 	}
 
@@ -70,6 +72,11 @@ void GameScene::Initialize() {
 	fade_ = new Fade();
 	fade_->Initialize();
 	fade_->Start(Fade::Status::FadeIn, kFadeDuration);
+
+	// ヒットエフェクト
+	modelHitEffect_ = Model::CreateFromOBJ("hitEffect", true);
+	HitEffect::SetModel(modelHitEffect_);
+	HitEffect::SetCamera(&camera_);
 }
 
 void GameScene::Update() {
@@ -107,6 +114,12 @@ void GameScene::Update() {
 		if (fade_->IsFinished()) {
 			phase_ = Phase::kPlay;
 		}
+
+		// ヒットエフェクト
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
+		}
+
 		break;
 	case Phase::kPlay:
 
@@ -170,6 +183,19 @@ void GameScene::Update() {
 			}
 		}
 
+		// ヒットエフェクト
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
+		}
+
+		hitEffects_.remove_if([](HitEffect* hitEffect) {
+			if (hitEffect->isDead()) {
+				delete hitEffect;
+				return true;
+			}
+			return false;
+		});
+
 		// 全ての当たり判定を行う
 		CheckAllCollisions();
 
@@ -220,6 +246,12 @@ void GameScene::Update() {
 			fade_->Start(Fade::Status::FadeOut, kFadeDuration);
 			phase_ = Phase::kFadeOut;
 		}
+
+		// ヒットエフェクト
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
+		}
+
 		break;
 
 	case Phase::kFadeOut:
@@ -269,6 +301,11 @@ void GameScene::Draw() {
 
 	fade_->Draw();
 
+	// ヒットエフェクト
+	for (HitEffect* hitEffect : hitEffects_) {
+		hitEffect->Draw();
+	}
+
 	Model::PostDraw();
 }
 
@@ -304,6 +341,13 @@ GameScene::~GameScene() {
 	// デスパーティクルの解放
 	delete deathParticles_;
 	deathParticles_ = nullptr;
+
+	// ヒットエフェクトモデルの解放
+	delete modelHitEffect_;
+	for (HitEffect* hitEffect : hitEffects_) {
+		delete hitEffect;
+	}
+	hitEffects_.clear();
 }
 
 void GameScene::GenerateBlocks() {
@@ -386,4 +430,10 @@ void GameScene::ChangePhase() {
 		// デス演出フェーズの処理（今は何もしない）
 		break;
 	}
+}
+
+void GameScene::CreateHitEffect(const Vector3& origin) {
+
+	HitEffect* newHitEffect = HitEffect::Create(origin);
+	hitEffects_.push_back(newHitEffect);
 }

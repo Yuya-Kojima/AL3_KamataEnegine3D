@@ -8,6 +8,8 @@ using namespace KamataEngine;
 
 class Player;
 
+class GameScene;
+
 /// <summary>
 /// 敵
 /// </summary>
@@ -40,6 +42,8 @@ public:
 	void BehaviorDeadUpdate();
 
 	bool IsCollisionDisabled() const { return isCollisionDisabled_; }
+
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 
 private:
 	enum class Behavior {
@@ -87,4 +91,6 @@ private:
 	float deadTimer_ = 0.0f;
 
 	bool isCollisionDisabled_ = false;
+
+	GameScene* gameScene_ = nullptr;
 };

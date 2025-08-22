@@ -1,4 +1,5 @@
 #include "Enemy.h"
+#include "GameScene.h"
 #include "Player.h"
 
 void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
@@ -83,6 +84,11 @@ void Enemy::OnCollision(const Player* player) {
 	if (player->IsAttack()) {
 		// 敵のふるまいをデス演出に変更
 		behaviorRequest_ = Behavior::kDead;
+
+		// 敵と自キャラの中間位置にエフェクトを生成
+		Vector3 effectPos = (worldTransform_.translation_ + player->GetWorldPosition()) / 2.0f;
+		gameScene_->CreateHitEffect(effectPos);
+
 		isCollisionDisabled_ = true;
 	}
 }

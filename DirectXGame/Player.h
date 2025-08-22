@@ -128,7 +128,7 @@ public:
 	/// ワールド座標を取得
 	/// </summary>
 	/// <returns></returns>
-	KamataEngine::Vector3 GetWorldPosition();
+	KamataEngine::Vector3 GetWorldPosition() const;
 
 	/// <summary>
 	/// AABBを取得
