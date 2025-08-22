@@ -121,6 +121,15 @@ void GameScene::Update() {
 			enemy->Update();
 		}
 
+		enemies_.remove_if([](Enemy* enemy) {
+			if (enemy->GetIsDead()) {
+				delete enemy;
+				return true;
+			}
+
+			return false;
+		});
+
 		// カメラコントローラーの初期化
 		cameraController_->Update();
 
@@ -338,6 +347,10 @@ void GameScene::CheckAllCollisions() {
 
 	// 自キャラと敵弾全ての当たり判定
 	for (Enemy* enemy : enemies_) {
+
+		if (enemy->IsCollisionDisabled())
+			continue; // コリジョン無効の敵はスキップ
+
 		// 敵弾の座標
 		aabb2 = enemy->GetAABB();
 

@@ -83,8 +83,8 @@ void Player::Draw(Camera& camera) {
 	// 3Dモデル描画
 	model_->Draw(worldTransform_, camera);
 
-	 if (behavior_ == Behavior::kAttack) {
-	modelAttack_->Draw(worldTransformAttack_, camera);
+	if (behavior_ == Behavior::kAttack) {
+		modelAttack_->Draw(worldTransformAttack_, camera);
 	}
 
 	Model::PostDraw();
@@ -532,6 +532,10 @@ AABB Player::GetAABB() { // 中心座標（ワールド座標）
 
 void Player::OnCollision(const Enemy* enemy) {
 	(void)enemy;
+
+	if (IsAttack()) {
+		return;
+	}
 
 	// 敵に当たったらデスフラグを立てる
 	isDead_ = true;

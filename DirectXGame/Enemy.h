@@ -29,7 +29,29 @@ public:
 	/// <returns></returns>
 	AABB GetAABB();
 
+	bool GetIsDead() { return isDead_; }
+
+	void BehaviorWalkInitialize();
+
+	void BehaviorWalkUpdate();
+
+	void BehaviorDeadInitialize();
+
+	void BehaviorDeadUpdate();
+
+	bool IsCollisionDisabled() const { return isCollisionDisabled_; }
+
 private:
+	enum class Behavior {
+		kWalk,
+		kDead,
+		kUnknown,
+	};
+
+	Behavior behavior_ = Behavior::kWalk;
+
+	Behavior behaviorRequest_ = Behavior::kUnknown;
+
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 
@@ -57,4 +79,12 @@ private:
 
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
+
+	// デスフラグ
+	bool isDead_ = false;
+
+	// デスアニメ用タイマー
+	float deadTimer_ = 0.0f;
+
+	bool isCollisionDisabled_ = false;
 };

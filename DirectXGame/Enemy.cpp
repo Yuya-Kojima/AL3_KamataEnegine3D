@@ -1,4 +1,5 @@
 #include "Enemy.h"
+#include "Player.h"
 
 void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
 	model_ = model;
@@ -16,19 +17,47 @@ void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
 	walkTimer_ = 0.0f;
 }
 
-void Enemy::Update() { // 行列更新
-	worldTransform_.translation_ += velocity_;
+void Enemy::Update() {
 
-	// タイマー加算（1フレームに1/60秒ずつ）
-	walkTimer_ += 1.0f / 60.0f;
+	if (behaviorRequest_ != Behavior::kUnknown) {
 
-	// 回転アニメーション
-	float param = std::sin((2.0f * std::numbers::pi_v<float>)*walkTimer_ / kWalkMotionTime);
+		behavior_ = behaviorRequest_;
 
-	float degree = kWalkMotionAngleStart + (kWalkMotionAngleEnd - kWalkMotionAngleStart) * (param + 1.0f) / 2.0f;
-	worldTransform_.rotation_.x = degree * (3.14159265f / 180.0f); // 度をラジアンに変換
+		switch (behavior_) {
 
-	WorldTransformUpdate(worldTransform_);
+		case Behavior::kWalk:
+		default:
+
+			BehaviorWalkInitialize();
+			BehaviorWalkUpdate();
+
+			break;
+
+		case Behavior::kDead:
+
+			BehaviorDeadInitialize();
+			BehaviorDeadUpdate();
+
+			break;
+		}
+		// ふるまいリクエストをリセット
+		behaviorRequest_ = Behavior::kUnknown;
+	}
+
+	switch (behavior_) {
+	case Behavior::kWalk:
+	default:
+
+		BehaviorWalkUpdate();
+
+		break;
+
+	case Behavior::kDead:
+
+		BehaviorDeadUpdate();
+
+		break;
+	}
 }
 
 void Enemy::Draw() {
@@ -43,7 +72,20 @@ void Enemy::Draw() {
 	Model::PostDraw();
 }
 
-void Enemy::OnCollision(const Player* player) { (void)player; }
+void Enemy::OnCollision(const Player* player) {
+	(void)player;
+
+	if (behavior_ == Behavior::kDead) {
+		// 敵がやられているなら何もしない
+		return;
+	}
+
+	if (player->IsAttack()) {
+		// 敵のふるまいをデス演出に変更
+		behaviorRequest_ = Behavior::kDead;
+		isCollisionDisabled_ = true;
+	}
+}
 
 AABB Enemy::GetAABB() {
 	Vector3 worldPos = worldTransform_.translation_;
@@ -54,4 +96,52 @@ AABB Enemy::GetAABB() {
 	aabb.max = {worldPos.x + kWidth / 2.0f, worldPos.y + kHeight / 2.0f, worldPos.z + kWidth / 2.0f};
 
 	return aabb;
+}
+
+void Enemy::BehaviorWalkInitialize() {}
+
+void Enemy::BehaviorWalkUpdate() {
+
+	// 行列更新
+	worldTransform_.translation_ += velocity_;
+
+	// タイマー加算（1フレームに1/60秒ずつ）
+	walkTimer_ += 1.0f / 60.0f;
+
+	// 回転アニメーション
+	float param = std::sin((2.0f * std::numbers::pi_v<float>)*walkTimer_ / kWalkMotionTime);
+
+	float degree = kWalkMotionAngleStart + (kWalkMotionAngleEnd - kWalkMotionAngleStart) * (param + 1.0f) / 2.0f;
+	worldTransform_.rotation_.x = degree * (3.14159265f / 180.0f); // 度をラジアンに変換
+
+	WorldTransformUpdate(worldTransform_);
+}
+
+void Enemy::BehaviorDeadInitialize() {}
+
+void Enemy::BehaviorDeadUpdate() {
+
+	// タイマー加算（1フレームに1/60秒ずつ）
+	deadTimer_ += 1.0f / 60.0f;
+
+	// 死亡時アニメーション
+	float t = std::clamp(deadTimer_ / 1.0f, 0.0f, 1.0f);
+	float e = 1.0f - (1.0f - t) * (1.0f - t) * (1.0f - t);
+
+	// Y軸
+	worldTransform_.rotation_.y += (2.0f * std::numbers::pi_v<float>)*6.0f * (1.0f / 60.0f) * (1.0f - 0.8f * e);
+
+	// X軸
+	worldTransform_.rotation_.x = (-110.0f * std::numbers::pi_v<float> / 180.0f) * e;
+
+	// スケーリング
+	float s = 1.0f - e;
+	worldTransform_.scale_ = {s, s, s};
+
+	if (deadTimer_ >= 60.0f) {
+		isDead_ = true;
+	}
+
+	// 行列更新
+	WorldTransformUpdate(worldTransform_);
 }

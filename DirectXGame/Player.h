@@ -154,6 +154,15 @@ public:
 	// 攻撃行動更新
 	void BehaviorAttackUpdate();
 
+	bool IsAttack() const {
+
+		if (behavior_ == Behavior::kAttack) {
+			return true;
+		}
+
+		return false;
+	}
+
 private:
 	enum class Behavior {
 		kRoot,    // 通常状態
