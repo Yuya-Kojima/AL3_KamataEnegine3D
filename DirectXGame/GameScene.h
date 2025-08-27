@@ -1,14 +1,18 @@
 #pragma once
+
+#define NOMINMAX
 #include "CameraController.h"
 #include "DeathParticles.h"
 #include "Enemy.h"
 #include "Fade.h"
+#include "Goal.h"
 #include "HitEffect.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
 #include "Skydome.h"
 #include "WorldMatrixTransform.h"
+#include <Windows.h>
 #include <vector>
 
 // ゲームシーン
@@ -44,10 +48,12 @@ public:
 private:
 	// ゲームのフェーズ（型）
 	enum class Phase {
-		kFadeIn, // フェードイン
-		kPlay,   // ゲームプレイ中
-		kDeath,  // 死亡演出
-		kFadeOut // フェードアウト
+		kFadeIn,   // フェードイン
+		kPlay,     // ゲームプレイ中
+		kDeath,    // 死亡演出
+		kFadeOut,  // フェードアウト
+		kClear,    // クリア
+		kGameOver, // ゲームオーバー
 	};
 
 	// ゲームの現在フェーズ（変数）
@@ -74,7 +80,8 @@ private:
 
 	// プレイヤー
 	Player* player_ = nullptr;
-	KamataEngine::Model* modelPlayer_ = nullptr;
+	KamataEngine::Model* modelSlimeOuter_ = nullptr;
+	KamataEngine::Model* modelSlimeInner_ = nullptr;
 	KamataEngine::Model* attackPlayer_ = nullptr;
 
 	// マップチップフィールド
@@ -98,4 +105,14 @@ private:
 	// ヒットエフェクト
 	std::list<HitEffect*> hitEffects_;
 	KamataEngine::Model* modelHitEffect_ = nullptr;
+
+	// ゴール
+	Goal goal_;
+	KamataEngine::Model* goalModel_ = nullptr;
+	KamataEngine::Vector3 goalPos_{};
+	float clearTimer_ = 0.0f;
+	const float clearMaxTime_ = 0.5f;
+
+	KamataEngine::Model* clearTextModel_ = nullptr;
+	KamataEngine::WorldTransform clearTextWT;
 };

@@ -6,10 +6,11 @@
 
 using namespace KamataEngine;
 
-void Player::Initialize(Model* model, Model* modelAttack, Vector3& position) {
+void Player::Initialize(Model* innerModel, Model* outerModel, Model* modelAttack, Vector3& position) {
 
 	// 3Dモデルの初期化
-	model_ = model;
+	innerModel_ = innerModel;
+	outerModel_ = outerModel;
 
 	// ワールド変換データの初期化
 	// worldTransform_ = new WorldTransform();
@@ -19,6 +20,9 @@ void Player::Initialize(Model* model, Model* modelAttack, Vector3& position) {
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 
 	WorldTransformUpdate(worldTransform_);
+
+	color_.Initialize();
+	color_.SetColor({1.0f, 1.0f, 1.0f, 0.5f});
 
 	modelAttack_ = modelAttack;
 	worldTransformAttack_.Initialize();
@@ -81,7 +85,9 @@ void Player::Draw(Camera& camera) {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	// 3Dモデル描画
-	model_->Draw(worldTransform_, camera);
+	innerModel_->Draw(worldTransform_, camera);
+
+	outerModel_->Draw(worldTransform_, camera, &color_);
 
 	if (behavior_ == Behavior::kAttack) {
 		modelAttack_->Draw(worldTransformAttack_, camera);
@@ -93,7 +99,8 @@ void Player::Draw(Camera& camera) {
 Player::~Player() {
 
 	// 3Dモデルの解放
-	delete model_;
+	delete innerModel_;
+	delete outerModel_;
 
 	//	delete worldTransform_;
 }
@@ -597,6 +604,15 @@ void Player::BehaviorRootUpdate() {
 		// 攻撃ビヘイビアをリクエスト
 		behaviorRequest_ = Behavior::kAttack;
 	}
+
+	// アニメーション
+	idleTime_ += (1.0f / 60.0f) * 5.0f;
+
+	const float s = std::sin(idleTime_);
+
+	worldTransform_.scale_.x = 1.0f - 0.06f * s;
+	worldTransform_.scale_.y = 1.0f + 0.06f * s;
+	worldTransform_.scale_.z = 1.0f - 0.06f * s;
 
 	// 行列更新
 	WorldTransformUpdate(worldTransform_);

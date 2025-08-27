@@ -33,7 +33,7 @@ class Player {
 	};
 
 public:
-	void Initialize(KamataEngine::Model* model, KamataEngine::Model* modelAttack, KamataEngine::Vector3& position);
+	void Initialize(KamataEngine::Model* innerModel, KamataEngine::Model* outerModel, KamataEngine::Model* modelAttack, KamataEngine::Vector3& position);
 
 	/// <summary>
 	/// 更新
@@ -163,6 +163,10 @@ public:
 		return false;
 	}
 
+	bool GetIsClear() { return isClear_; }
+
+	void MarkClear() { isClear_ = true; }
+
 private:
 	enum class Behavior {
 		kRoot,    // 通常状態
@@ -180,13 +184,16 @@ private:
 	AttackPhase attackPhase_;
 
 	// 3Dモデル
-	KamataEngine::Model* model_ = nullptr;
+	KamataEngine::Model* innerModel_ = nullptr;
+	KamataEngine::Model* outerModel_ = nullptr;
 
 	// カメラ
 	KamataEngine::Camera camera_;
 
 	// ワールド変換データ
 	KamataEngine::WorldTransform worldTransform_;
+
+	KamataEngine::ObjectColor color_;
 
 	// 速度
 	KamataEngine::Vector3 velocity_ = {};
@@ -263,4 +270,10 @@ private:
 	KamataEngine::Model* modelAttack_ = nullptr;
 	KamataEngine::WorldTransform worldTransformAttack_;
 	bool attackEffectVisible_ = false;
+
+	bool isClear_ = false;
+
+	// アニメーション
+	float idleTime_ = 0.0f;
+	float idleOffset_ = 0.0f;
 };

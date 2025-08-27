@@ -24,13 +24,14 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("Resources/AL3_mapchip.csv");
 
 	// プレイヤーの初期化
-	modelPlayer_ = Model::CreateFromOBJ("player", true);
+	modelSlimeInner_ = Model::CreateFromOBJ("slime_inner", true);
+	modelSlimeOuter_ = Model::CreateFromOBJ("slime_outer",true);
 	attackPlayer_ = Model::CreateFromOBJ("attackEffect", true);
 
 	Vector3 playerPosition = mapChipField_->GetMatChipPositionByIndex(1, 18);
 
 	player_ = new Player();
-	player_->Initialize(modelPlayer_, attackPlayer_, playerPosition);
+	player_->Initialize(modelSlimeInner_,modelSlimeOuter_, attackPlayer_, playerPosition);
 
 	player_->SetMapChipField(mapChipField_);
 
@@ -77,6 +78,20 @@ void GameScene::Initialize() {
 	modelHitEffect_ = Model::CreateFromOBJ("hitEffect", true);
 	HitEffect::SetModel(modelHitEffect_);
 	HitEffect::SetCamera(&camera_);
+
+	// ゴール
+	goalModel_ = Model::CreateFromOBJ("goal", true);
+	goalPos_ = mapChipField_->GetMatChipPositionByIndex(30, 18);
+	goal_.Initialize(goalPos_);
+
+	clearTextModel_ = Model::CreateFromOBJ("clear", true);
+	clearTextWT.Initialize();
+	clearTextWT.translation_ = goalPos_;
+	clearTextWT.translation_.x += 10.0f;
+	clearTextWT.translation_.y += 3.0f;
+	clearTextWT.translation_.z -= 2.0f;
+	clearTextWT.scale_ *= 2.0f;
+	WorldTransformUpdate(clearTextWT);
 }
 
 void GameScene::Update() {
@@ -254,11 +269,63 @@ void GameScene::Update() {
 
 		break;
 
+	case Phase::kClear: {
+
+		clearTimer_ += 1.0f / 60.0f;
+
+		float t = std::min(clearTimer_ / 2.0f, 1.0f);
+		float pulse = 1.0f + 0.2f * sinf(t * 3.14159f);
+		goal_.SetScale({pulse, pulse, pulse});
+
+		if (clearTimer_ >= 2.0f) {
+			fade_->Start(Fade::Status::FadeOut, kFadeDuration);
+			phase_ = Phase::kFadeOut;
+		}
+
+		goal_.Update();
+
+		// クリア時のテキスト
+		// イージング
+		auto Saturate = [](float x) { return x < 0 ? 0 : (x > 1 ? 1 : x); };
+
+		auto EaseOutBack = [&](float t) {
+			t = Saturate(t);
+			float y = t - 1.0f;
+			const float s = 1.70158f;
+			return 1.0f + (s + 1.0f) * y * y * y + s * y * y;
+		};
+
+		KamataEngine::Vector3 end = goalPos_;
+		end.y += 3.0f;
+		end.z -= 2.0f;
+
+		float u = clearTimer_ / clearMaxTime_;
+
+		if (u > 1.0f) {
+			u = 1.0f;
+		}
+
+		float e = EaseOutBack(u);
+
+		KamataEngine::Vector3 offset = {10.0f, 0.0f, 0.0f};
+
+		float pos = end.x + offset.x * (1.0f - e);
+
+		clearTextWT.translation_.y = 3.0f + std::sin(clearTimer_);
+
+		clearTextWT.translation_.x = pos;
+
+		WorldTransformUpdate(clearTextWT);
+
+		break;
+	}
+
 	case Phase::kFadeOut:
 		fade_->Update();
 		if (fade_->IsFinished()) {
 			finished_ = true;
 		}
+
 		break;
 	}
 }
@@ -270,6 +337,9 @@ void GameScene::Draw() {
 
 	Model::PreDraw(dxCommon->GetCommandList());
 
+	if (player_->GetIsClear()) {
+		clearTextModel_->Draw(clearTextWT, camera_);
+	}
 	// ブロックの描画
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -284,6 +354,9 @@ void GameScene::Draw() {
 
 	// 天球の描画処理
 	skydome_->Draw(camera_);
+
+	// ゴール
+	goal_.Draw(&camera_, goalModel_);
 
 	// プレイヤーの描画
 	if (phase_ == Phase::kFadeIn || phase_ == Phase::kPlay) {
@@ -348,6 +421,8 @@ GameScene::~GameScene() {
 		delete hitEffect;
 	}
 	hitEffects_.clear();
+
+	delete goalModel_;
 }
 
 void GameScene::GenerateBlocks() {
@@ -407,6 +482,16 @@ void GameScene::CheckAllCollisions() {
 			enemy->OnCollision(player_);
 		}
 	}
+
+	// 自キャラとゴールの当たり判定
+	if (!player_->GetIsClear()) {
+
+		aabb2 = goal_.GetAABB();
+
+		if (IsCollision(aabb1, aabb2)) {
+			player_->MarkClear();
+		}
+	}
 }
 
 void GameScene::ChangePhase() {
@@ -424,10 +509,21 @@ void GameScene::ChangePhase() {
 			deathParticles_ = new DeathParticles();
 			deathParticles_->Initialize(modelDeathParticles, &camera_, deathParticlesPosition);
 		}
+
+		if (player_->GetIsClear()) {
+
+			phase_ = Phase::kClear;
+			clearTimer_ = 0.0f;
+		}
+
 		break;
 
 	case Phase::kDeath:
 		// デス演出フェーズの処理（今は何もしない）
+		break;
+
+	case Phase::kClear:
+
 		break;
 	}
 }
