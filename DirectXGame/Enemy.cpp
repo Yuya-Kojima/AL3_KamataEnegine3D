@@ -108,8 +108,35 @@ void Enemy::BehaviorWalkInitialize() {}
 
 void Enemy::BehaviorWalkUpdate() {
 
-	// 行列更新
-	worldTransform_.translation_ += velocity_;
+	int steps = std::max(1, (int)std::ceil(std::abs(velocity_.x) / kMaxStep));
+	float dx = velocity_.x / (float)steps;
+
+	constexpr float kYawRight = -std::numbers::pi_v<float> * 2.0f; // 右向き
+	constexpr float kYawLeft = std::numbers::pi_v<float>;
+
+	for (int i = 0; i < steps; ++i) {
+		if (dx != 0.0f) {
+			float dir = (dx > 0.0f) ? 1.0f : -1.0f;
+			Vector3 next = worldTransform_.translation_;
+			next.x += dx;
+
+			// 進行方向側の2点（胸/足）で壁ヒットを検出
+			Vector3 p1 = {next.x + dir * (kWidth * 0.5f + kEPS), worldTransform_.translation_.y + kHeight * 0.25f, next.z};
+			Vector3 p2 = {next.x + dir * (kWidth * 0.5f + kEPS), worldTransform_.translation_.y - kHeight * 0.25f, next.z};
+
+			if (map_ && (IsSolidAt(p1) || IsSolidAt(p2))) {
+				auto r = TileRectAt((IsSolidAt(p1) ? p1 : p2));
+				float boundary = (dir > 0.0f) ? r.left : r.right;
+				worldTransform_.translation_.x = boundary - dir * (kWidth * 0.5f + kEPS);
+
+				velocity_.x *= -1.0f;
+				worldTransform_.rotation_.y = (velocity_.x > 0.0f) ? kYawRight : kYawLeft;
+				dx = 0.0f;
+			} else {
+				worldTransform_.translation_.x = next.x;
+			}
+		}
+	}
 
 	// タイマー加算（1フレームに1/60秒ずつ）
 	walkTimer_ += 1.0f / 60.0f;
@@ -120,6 +147,7 @@ void Enemy::BehaviorWalkUpdate() {
 	float degree = kWalkMotionAngleStart + (kWalkMotionAngleEnd - kWalkMotionAngleStart) * (param + 1.0f) / 2.0f;
 	worldTransform_.rotation_.x = degree * (3.14159265f / 180.0f); // 度をラジアンに変換
 
+	// 行列更新
 	WorldTransformUpdate(worldTransform_);
 }
 
@@ -150,4 +178,15 @@ void Enemy::BehaviorDeadUpdate() {
 
 	// 行列更新
 	WorldTransformUpdate(worldTransform_);
+}
+
+bool Enemy::IsSolidAt(const Vector3& p) const {
+	auto idx = map_->GetMapChipIndexSetByPosition(p);
+	auto type = map_->GetMapChipTypeByIndex(idx.xIndex, idx.yIndex);
+	return type == MapChipType::kBlock;
+}
+
+MapChipField::Rect Enemy::TileRectAt(const Vector3& p) const {
+	auto idx = map_->GetMapChipIndexSetByPosition(p);
+	return map_->GetRectByIndex(idx.xIndex, idx.yIndex);
 }

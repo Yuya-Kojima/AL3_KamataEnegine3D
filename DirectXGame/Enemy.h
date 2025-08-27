@@ -1,7 +1,11 @@
 #pragma once
+#define NOMINMAX
+#include <Windows.h>
+#include <algorithm> 
 #include "AABB.h"
 #include "KamataEngine.h"
 #include "WorldMatrixTransform.h"
+#include"MapChipField.h"
 #include <numbers>
 
 using namespace KamataEngine;
@@ -44,6 +48,8 @@ public:
 	bool IsCollisionDisabled() const { return isCollisionDisabled_; }
 
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+
+	void SetMapChipField(MapChipField* m) { map_ = m; }
 
 private:
 	enum class Behavior {
@@ -93,4 +99,13 @@ private:
 	bool isCollisionDisabled_ = false;
 
 	GameScene* gameScene_ = nullptr;
+
+	 MapChipField* map_ = nullptr;
+
+	static inline constexpr float kEPS = 0.001f;
+	static inline constexpr float kMaxStep = 0.3f;
+
+	  bool IsSolidAt(const Vector3& p) const;
+	MapChipField::Rect TileRectAt(const Vector3& p) const;
+
 };

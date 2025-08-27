@@ -59,6 +59,8 @@ void GameScene::Initialize() {
 
 		newEnemy->SetGameScene(this);
 
+		newEnemy->SetMapChipField(mapChipField_);
+
 		enemies_.push_back(newEnemy);
 	}
 
