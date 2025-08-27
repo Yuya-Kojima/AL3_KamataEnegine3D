@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numbers>
 #include <random>
+#include<cassert>
 
 // 静的メンバ変数の実体
 Model* HitEffect::model_ = nullptr;

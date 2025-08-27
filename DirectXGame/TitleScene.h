@@ -27,7 +27,10 @@ private:
 	Phase phase_ = Phase::kFadeIn;
 
 	Model* model_ = nullptr;
+	Model* startModel_ = nullptr;
+
 	WorldTransform worldTransform_;
+	WorldTransform startWorldTransform_;
 	Camera camera_;
 
 	float time_ = 0.0f;
@@ -37,4 +40,12 @@ private:
 	Fade* fade_ = nullptr;
 
 	const float kFadeDuration = 1.0f;
+
+	float blinkT_ = 0.0f;
+	bool showPress_ = true; // 描画フラグ
+
+	Model* backgroundModel_ = nullptr;
+	WorldTransform worldTransformBack_;
+
+	Model* titleEnemy_ = nullptr;
 };

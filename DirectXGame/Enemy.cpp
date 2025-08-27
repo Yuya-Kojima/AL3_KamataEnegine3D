@@ -11,7 +11,7 @@ void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
 	worldTransform_.translation_ = position;
 
 	// 自キャラと逆向き（例：左を向く）
-	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+	worldTransform_.rotation_.y = -std::numbers::pi_v<float> /*/ 2.0f*/;
 
 	velocity_ = {-kWalkSpeed, 0, 0};
 
