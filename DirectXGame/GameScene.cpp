@@ -25,13 +25,13 @@ void GameScene::Initialize() {
 
 	// プレイヤーの初期化
 	modelSlimeInner_ = Model::CreateFromOBJ("slime_inner", true);
-	modelSlimeOuter_ = Model::CreateFromOBJ("slime_outer",true);
+	modelSlimeOuter_ = Model::CreateFromOBJ("slime_outer", true);
 	attackPlayer_ = Model::CreateFromOBJ("attackEffect", true);
 
 	Vector3 playerPosition = mapChipField_->GetMatChipPositionByIndex(1, 18);
 
 	player_ = new Player();
-	player_->Initialize(modelSlimeInner_,modelSlimeOuter_, attackPlayer_, playerPosition);
+	player_->Initialize(modelSlimeInner_, modelSlimeOuter_, attackPlayer_, playerPosition);
 
 	player_->SetMapChipField(mapChipField_);
 
@@ -49,7 +49,7 @@ void GameScene::Initialize() {
 	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
 
 	// Enemy の生成と初期化
-	for (int32_t i = 0; i < 5; ++i) {
+	for (int32_t i = 0; i < 3; ++i) {
 		Enemy* newEnemy = new Enemy();
 
 		// 一体ずつ異なる座標をセット（例：X座標を10ずつずらす）
@@ -94,6 +94,10 @@ void GameScene::Initialize() {
 	clearTextWT.translation_.z -= 2.0f;
 	clearTextWT.scale_ *= 2.0f;
 	WorldTransformUpdate(clearTextWT);
+
+	textureHandle_ = TextureManager::Load("operator.png");
+
+	operatorSprite_ = Sprite::Create(textureHandle_, {0.0f, 0.0f});
 }
 
 void GameScene::Update() {
@@ -382,6 +386,12 @@ void GameScene::Draw() {
 	}
 
 	Model::PostDraw();
+
+	Sprite::PreDraw(dxCommon->GetCommandList());
+
+	operatorSprite_->Draw();
+
+	Sprite::PostDraw();
 }
 
 GameScene::~GameScene() {
@@ -425,6 +435,8 @@ GameScene::~GameScene() {
 	hitEffects_.clear();
 
 	delete goalModel_;
+
+	delete operatorSprite_;
 }
 
 void GameScene::GenerateBlocks() {

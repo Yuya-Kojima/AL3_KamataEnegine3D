@@ -115,4 +115,8 @@ private:
 
 	KamataEngine::Model* clearTextModel_ = nullptr;
 	KamataEngine::WorldTransform clearTextWT;
+
+	// 操作方法
+	KamataEngine::Sprite* operatorSprite_ = nullptr;
+	uint32_t textureHandle_ = 0;
 };
