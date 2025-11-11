@@ -276,4 +276,15 @@ private:
 	// アニメーション
 	float idleTime_ = 0.0f;
 	float idleOffset_ = 0.0f;
+
+	// 二段ジャンプ
+	bool isDoubleJumped_ = false;
+
+	// 壁ジャンプ
+	bool isTouchWall_ = false;
+	static inline const float kLimitWallSlideSpeed_ = 0.08f;
+
+	static inline const float kAirAcceleration_ = 0.004f; // 空中での横加速
+	static inline const float kAirAttenuation_ = 0.02f;   // 入力なし時の微減衰
+	static inline const float kLimitAirRunSpeed_ = 0.18f; // 空中の最大横速度
 };

@@ -108,12 +108,12 @@ Player::~Player() {
 void Player::Move() {
 
 	if (onGround_) {
-		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT) || Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_D)) {
 
 			// 左右加速
 			Vector3 acceleration = {};
 
-			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+			if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_D)) {
 				// 左移動中の右入力
 				if (velocity_.x < 0.0f) {
 					velocity_.x *= (1.0f - kAttenuation_);
@@ -129,7 +129,7 @@ void Player::Move() {
 					// 旋回タイマーに時間を設定する
 					turnTimer_ = kTimeTurn;
 				}
-			} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+			} else if (Input::GetInstance()->PushKey(DIK_LEFT) || Input::GetInstance()->PushKey(DIK_A)) {
 				// 右移動中の左入力
 				if (velocity_.x > 0.0f) {
 					// 速度と逆方向に入力中は急ブレーキ
@@ -158,18 +158,59 @@ void Player::Move() {
 			velocity_.x *= (1.0f - kAttenuation_);
 		}
 
-		if (Input::GetInstance()->PushKey(DIK_UP)) {
+		if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_W)) {
 
 			// ジャンプ初速
 			velocity_.y += kJumpAcceleration;
+			isDoubleJumped_ = false;
 		}
 	} else {
+
+		const bool holdRight = Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_D);
+		const bool holdLeft = Input::GetInstance()->PushKey(DIK_LEFT) || Input::GetInstance()->PushKey(DIK_A);
+
+		if (holdRight && !holdLeft) {
+			velocity_.x += kAirAcceleration_;
+		} else if (holdLeft && !holdRight) {
+			velocity_.x -= kAirAcceleration_;
+		} else {
+			velocity_.x *= (1.0f - kAirAttenuation_);
+		}
+		// 空中用の最大速度でクランプ
+		velocity_.x = std::clamp(velocity_.x, -kLimitAirRunSpeed_, kLimitAirRunSpeed_);
 
 		// 落下速度
 		velocity_.y += -kGravityAcceleration;
 
 		// 落下速度制限
 		velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
+
+		if (!onGround_ && isTouchWall_ && velocity_.y < 0.0f) {
+			velocity_.y = std::max(velocity_.y, -kLimitWallSlideSpeed_);
+		}
+
+		const bool trigJump = Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_W);
+
+		// 二段ジャンプ
+		if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_W)) {
+			if (trigJump) {
+				// 1) 壁ジャンプを先に判定
+				if (isTouchWall_) {
+					// 見ている向きから“反対方向”へ押し出す
+					if (lrDirection_ == LRDirection::kRight) {
+						velocity_.x = -kLimitRunSpeed_ * 0.8f; // 右向き＝右壁想定→左へ
+					} else {
+						velocity_.x = kLimitRunSpeed_ * 0.8f; // 左向き＝左壁想定→右へ
+					}
+					velocity_.y = kJumpAcceleration * 0.7f; // 縦の押し上げ
+				}
+				// 2) 壁に触れていないなら二段ジャンプ
+				else if (!isDoubleJumped_) {
+					velocity_.y = kJumpAcceleration;
+					isDoubleJumped_ = true;
+				}
+			}
+		}
 	}
 }
 
@@ -503,6 +544,11 @@ void Player::UpdateGroundState(const CollisionMapInfo& info) {
 
 			// Y速度を0にする
 			velocity_.y = 0.0f;
+
+			// 二段ジャンプフラグリセット
+			isDoubleJumped_ = false;
+
+			isTouchWall_ = false;
 		}
 	}
 }
@@ -513,6 +559,7 @@ void Player::HandleWallCollision(const CollisionMapInfo& info) {
 	if (info.isHitWall) {
 		velocity_.x *= (1.0f - kAttenuationWall);
 	}
+	isTouchWall_ = info.isHitWall;
 }
 
 KamataEngine::Vector3 Player::GetWorldPosition() const {
