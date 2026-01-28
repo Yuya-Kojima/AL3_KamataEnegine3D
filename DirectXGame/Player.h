@@ -339,4 +339,11 @@ private:
 	float wireFlyLength_ = 0.0f;              // 発射中の伸びた長さ
 
 	static inline const float kWireShootSpeed_ = 25.0f; // 発射速度
+
+	bool wasShiftDown_ = false;
+
+	void DetachToFlying();
+	KamataEngine::Vector3 GetWireMuzzlePos() const;
+	KamataEngine::Vector3 GetAimDirForWire() const;
+	void ReleaseWire();
 };
