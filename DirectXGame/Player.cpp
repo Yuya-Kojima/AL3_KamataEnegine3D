@@ -3,6 +3,8 @@
 #include "MapChipField.h"
 #include "VectorMath.h"
 #include <algorithm>
+#include <cmath>
+#include <imgui.h>
 
 using namespace KamataEngine;
 
@@ -32,6 +34,9 @@ void Player::Initialize(Model* innerModel, Model* outerModel, Model* modelAttack
 
 	// カメラの初期化
 	camera_.Initialize();
+
+	wireVisualTransform_.Initialize();
+	wireAnchorVisualTransform_.Initialize();
 }
 
 void Player::Update() {
@@ -93,6 +98,42 @@ void Player::Draw(Camera& camera) {
 		modelAttack_->Draw(worldTransformAttack_, camera);
 	}
 
+	// ワイヤー可視化
+	if (isWireVisualVisible_ && (wireState_ == WireState::kFlying || wireState_ == WireState::kAttached)) {
+
+		KamataEngine::Model* wireModel = outerModel_;
+
+		// 始点は発射口
+		KamataEngine::Vector3 p = worldTransform_.translation_;
+		p.y += 1.2f;
+		p.x += (lrDirection_ == LRDirection::kRight) ? 0.6f : -0.6f;
+
+		// 終点：Flying中は先端、Attachedはアンカー
+		KamataEngine::Vector3 a = {};
+		if (wireState_ == WireState::kFlying) {
+			a = VectorMath::Add(p, VectorMath::Multiply(wireFlyLength_, wireDir_));
+		} else {
+			a = wireAnchor_;
+		}
+
+		// ワイヤー本体
+		KamataEngine::Vector3 d = {a.x - p.x, a.y - p.y, a.z - p.z};
+		float len = std::sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+		if (len > 0.0001f) {
+
+			wireVisualTransform_.translation_ = {(p.x + a.x) * 0.5f, (p.y + a.y) * 0.5f, (p.z + a.z) * 0.5f};
+			wireVisualTransform_.scale_ = {kWireVisualThickness_, kWireVisualThickness_, len};
+
+			float yaw = std::atan2(d.x, d.z);
+			float xz = std::sqrt(d.x * d.x + d.z * d.z);
+			float pitch = -std::atan2(d.y, xz);
+			wireVisualTransform_.rotation_ = {pitch, yaw, 0.0f};
+
+			WorldTransformUpdate(wireVisualTransform_);
+			wireModel->Draw(wireVisualTransform_, camera);
+		}
+	}
+
 	Model::PostDraw();
 }
 
@@ -106,6 +147,25 @@ Player::~Player() {
 }
 
 void Player::Move() {
+
+	// Shift押下でトグル
+	if (Input::GetInstance()->TriggerKey(DIK_LSHIFT)) {
+		if (wireState_ == WireState::kNone) {
+			TryStartWire(); // 発射
+		} else {
+			EndWire(); // 解除
+		}
+	}
+
+	// 発射中 or 刺さり中ならワイヤー更新
+	if (wireState_ != WireState::kNone) {
+		UpdateWire();
+	}
+
+	// 刺さり中は通常移動入力を止める
+	if (wireState_ == WireState::kAttached) {
+		return;
+	}
 
 	if (onGround_) {
 		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT) || Input::GetInstance()->PushKey(DIK_A) || Input::GetInstance()->PushKey(DIK_D)) {
@@ -148,7 +208,7 @@ void Player::Move() {
 			}
 
 			// 加速　減速
-			velocity_ = Add(velocity_, acceleration);
+			velocity_ = VectorMath::Add(velocity_, acceleration);
 
 			// 最大速度制限
 			velocity_.x = std::clamp(velocity_.x, -kLimitRunSpeed_, kLimitRunSpeed_);
@@ -806,4 +866,122 @@ void Player::BehaviorAttackUpdate() {
 
 	// worldTransformAttack_.rotation_.y += std::numbers::pi_v<float>;
 	WorldTransformUpdate(worldTransformAttack_);
+}
+
+void Player::TryStartWire() {
+
+	// 発射口
+	wireStartPos_ = worldTransform_.translation_;
+	wireStartPos_.y += 1.2f;
+	wireStartPos_.x += (lrDirection_ == LRDirection::kRight) ? 0.6f : -0.6f;
+
+	// 斜め前方向
+	wireDir_ = {};
+	wireDir_.x = (lrDirection_ == LRDirection::kRight) ? 1.0f : -1.0f;
+	wireDir_.y = 1.5f;
+	wireDir_.z = 0.0f;
+
+	// 正規化
+	float len = VectorMath::Length(wireDir_);
+	if (len > 0.0001f) {
+		wireDir_ = VectorMath::Multiply(1.0f / len, wireDir_);
+	}
+
+	// 発射開始
+	wireFlyLength_ = 0.0f;
+	wireState_ = WireState::kFlying;
+
+	isWireActive_ = false;
+}
+
+void Player::EndWire() {
+	isWireActive_ = false;
+	wireState_ = WireState::kNone;
+	wireFlyLength_ = 0.0f;
+}
+
+void Player::UpdateWire() {
+
+	// ---- 発射中（見た目が出る）----
+	if (wireState_ == WireState::kFlying) {
+
+		// 伸ばす
+		wireFlyLength_ += kWireShootSpeed_ * (1.0f / 60.0f);
+
+		// 最大距離で失敗
+		if (wireFlyLength_ >= kWireMaxDistance_) {
+			wireState_ = WireState::kNone; // 失敗して消える
+			isWireActive_ = false;
+			return;
+		}
+
+		// 先端位置
+		KamataEngine::Vector3 tip = VectorMath::Add(wireStartPos_, VectorMath::Multiply(wireFlyLength_, wireDir_));
+
+		// 先端がブロックに入ったら刺さる
+		if (mapChipField_) {
+			auto idx = mapChipField_->GetMapChipIndexSetByPosition(tip);
+			if (idx.xIndex < mapChipField_->GetNumBlockHorizontal() && idx.yIndex < mapChipField_->GetNumBlockVirtical()) {
+
+				if (mapChipField_->GetMapChipTypeByIndex(idx.xIndex, idx.yIndex) == MapChipType::kBlock) {
+
+					// ブロック中心→表面寄せ（刺さり位置が自然）
+					KamataEngine::Vector3 center = mapChipField_->GetMatChipPositionByIndex(idx.xIndex, idx.yIndex);
+					center.y += MapChipField::GetBlockHeight() * 0.5f;
+
+					const float surfaceOffset = 0.55f;
+					wireAnchor_ = VectorMath::Subtract(center, VectorMath::Multiply(surfaceOffset, wireDir_));
+
+					// 刺さった瞬間の自然長は「発射口↔アンカー距離」
+					KamataEngine::Vector3 d = VectorMath::Subtract(wireAnchor_, wireStartPos_);
+					wireLength_ = VectorMath::Length(d);
+
+					wireState_ = WireState::kAttached;
+					isWireActive_ = true;
+				}
+			}
+		}
+
+		return; // Flying中はここで終わり
+	}
+
+	// ---- 刺さり中（ここから下は“今のスイング処理”をそのまま使える）----
+	if (wireState_ != WireState::kAttached) {
+		return;
+	}
+
+	// アンカー→プレイヤー
+	Vector3 toPlayer = VectorMath::Subtract(worldTransform_.translation_, wireAnchor_);
+	float dist = VectorMath::Length(toPlayer);
+	if (dist < 0.0001f) {
+		return;
+	}
+
+	Vector3 dir = VectorMath::Multiply(1.0f / dist, toPlayer); // 正規化（アンカー→プレイヤー）
+
+	// 任意：Wで巻き取り、Sで緩める（不要なら消してOK）
+	if (Input::GetInstance()->PushKey(DIK_W)) {
+		wireLength_ = std::max(kWireMinLength_, wireLength_ - kWireReelSpeed_);
+	}
+	if (Input::GetInstance()->PushKey(DIK_S)) {
+		wireLength_ = std::min(kWireMaxDistance_, wireLength_ + kWireReelSpeed_);
+	}
+
+	// 重力は“弱めに”掛ける（好みで 0 にして完全スイングでもOK）
+	velocity_.y += -kGravityAcceleration * 0.6f;
+
+	// 距離が自然長より伸びてたら、バネっぽく引っ張る
+	float stretch = dist - wireLength_;
+	if (stretch > 0.0f) {
+		// 引っ張り加速（アンカー方向＝ -dir）
+		Vector3 pull = VectorMath::Multiply(-stretch * kWirePullK_, dir);
+		velocity_ = VectorMath::Add(velocity_, pull);
+
+		// 伸び方向の速度（放射方向）を少し殺して暴れ抑え
+		float radialV = VectorMath::Dot(velocity_, dir);
+		velocity_ = VectorMath::Subtract(velocity_, VectorMath::Multiply(radialV * kWireDamping_, dir));
+	}
+
+	// 落下速度制限は残してOK（好きなら調整）
+	velocity_.y = std::max(velocity_.y, -kLimitFallSpeed);
 }

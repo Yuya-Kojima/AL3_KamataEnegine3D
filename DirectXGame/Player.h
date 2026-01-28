@@ -287,4 +287,56 @@ private:
 	static inline const float kAirAcceleration_ = 0.004f; // 空中での横加速
 	static inline const float kAirAttenuation_ = 0.02f;   // 入力なし時の微減衰
 	static inline const float kLimitAirRunSpeed_ = 0.18f; // 空中の最大横速度
+
+	// ワイヤーアクション
+	bool isWireActive_ = false;
+	KamataEngine::Vector3 wireAnchor_ = {}; // 引っ掛かった場所（ワールド座標）
+	float wireLength_ = 0.0f;               // 現在のワイヤー長（自然長）
+
+	static inline const float kWireMaxDistance_ = 8.0f; // 探索最大距離
+	static inline const float kWirePullK_ = 0.06f;      // 引っ張りの強さ
+	static inline const float kWireDamping_ = 0.02f;    // ブレ抑え
+	static inline const float kWireMinLength_ = 3.0f;   // これ以下には縮めない（めり込み防止）
+	static inline const float kWireReelSpeed_ = 0.20f;  // 伸縮
+
+	// 発射/解除/更新
+	void TryStartWire();
+	void EndWire();
+	void UpdateWire(); // ワイヤー中の加速度・速度補正
+	bool FindWireAnchor(KamataEngine::Vector3& outAnchor) const;
+
+public:
+	bool IsWireActive() const { return isWireActive_; }
+	KamataEngine::Vector3 GetWireAnchor() const { return wireAnchor_; }
+	float GetWireLength() const { return wireLength_; }
+
+private:
+	// --- ワイヤー可視化（デバッグ） ---
+	bool isWireVisualVisible_ = true;
+
+	// ワイヤー本体（細長いモデルを伸ばして線に見せる）
+	KamataEngine::WorldTransform wireVisualTransform_;
+
+	// アンカー位置のマーカー（小さいモデル）
+	KamataEngine::WorldTransform wireAnchorVisualTransform_;
+
+	// 見た目調整
+	static inline const float kWireVisualThickness_ = 0.15f;   // 太さ
+	static inline const float kWireAnchorVisualScale_ = 1.25f; // アンカーマーカーの大きさ
+
+	enum class WireState {
+		kNone,     // 何もしてない
+		kFlying,   // 発射中
+		kAttached, // アンカーに刺さった
+	};
+
+	// ワイヤーの状態
+	WireState wireState_ = WireState::kNone;
+
+	// 発射中のワイヤー情報
+	KamataEngine::Vector3 wireStartPos_ = {}; // 発射口
+	KamataEngine::Vector3 wireDir_ = {};      // 発射方向
+	float wireFlyLength_ = 0.0f;              // 発射中の伸びた長さ
+
+	static inline const float kWireShootSpeed_ = 25.0f; // 発射速度
 };

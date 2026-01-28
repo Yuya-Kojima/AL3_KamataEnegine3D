@@ -32,7 +32,7 @@ public:
 
 	MapChipType GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex);
 
-	KamataEngine::Vector3 GetMatChipPositionByIndex(uint32_t xIndex, uint32_t yIndex);
+	KamataEngine::Vector3 GetMatChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) const;
 
 	uint32_t GetNumBlockVirtical() { return kNumBlockVirtical; }
 
@@ -41,6 +41,10 @@ public:
 	IndexSet GetMapChipIndexSetByPosition(const KamataEngine::Vector3& position);
 
 	Rect GetRectByIndex(uint32_t xIndex, uint32_t yIndex);
+
+	static float GetBlockHeight() { return kBlockHeight; }
+
+	KamataEngine::Vector3 GetBlockCenterPositionByIndex(uint32_t xIndex, uint32_t yIndex) const;
 
 private:
 	// 1ブロックのサイズ

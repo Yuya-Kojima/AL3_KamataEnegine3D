@@ -91,6 +91,7 @@ private:
 	CameraController* cameraController_ = nullptr;
 
 	// Enemy
+	uint32_t maxEnemyCount_;
 	std::list<Enemy*> enemies_;
 	KamataEngine::Model* modelEnemy_ = nullptr;
 
@@ -119,4 +120,7 @@ private:
 	// 操作方法
 	KamataEngine::Sprite* operatorSprite_ = nullptr;
 	uint32_t textureHandle_ = 0;
+
+	// BGM
+	uint32_t bgmHandle_ = 0;
 };

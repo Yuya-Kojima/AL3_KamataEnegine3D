@@ -21,7 +21,7 @@ void GameScene::Initialize() {
 
 	// マップチップフィールド
 	mapChipField_ = new MapChipField;
-	mapChipField_->LoadMapChipCsv("Resources/AL3_mapchip.csv");
+	mapChipField_->LoadMapChipCsv("Resources/AL3_mapchip_stage1_wire.csv");
 
 	// プレイヤーの初期化
 	modelSlimeInner_ = Model::CreateFromOBJ("slime_inner", true);
@@ -48,21 +48,24 @@ void GameScene::Initialize() {
 	// Enemy モデルの生成
 	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
 
-	// Enemy の生成と初期化
-	for (int32_t i = 0; i < 3; ++i) {
+	auto spawnEnemy = [&](const KamataEngine::Vector3& enemyPosition) {
 		Enemy* newEnemy = new Enemy();
 
-		// 一体ずつ異なる座標をセット（例：X座標を10ずつずらす）
-		Vector3 enemyPosition = {14.0f + i * 10.0f, 1.0f, 0.0f};
-
 		newEnemy->Initialize(modelEnemy_, &camera_, enemyPosition);
-
 		newEnemy->SetGameScene(this);
-
 		newEnemy->SetMapChipField(mapChipField_);
 
 		enemies_.push_back(newEnemy);
-	}
+	};
+
+	maxEnemyCount_ = 6;
+
+	spawnEnemy({14.0f, 1.0f, 0.0f});
+	spawnEnemy({22.0f, 1.0f, 0.0f});
+	spawnEnemy({35.0f, 1.0f, 0.0f});
+	spawnEnemy({44.0f, 3.0f, 0.0f});
+	spawnEnemy({56.0f, 1.0f, 0.0f});
+	spawnEnemy({64.0f, 1.0f, 0.0f});
 
 	// DeathParticles モデルの生成
 	modelDeathParticles = Model::CreateFromOBJ("deathParticle", true);
@@ -83,7 +86,7 @@ void GameScene::Initialize() {
 
 	// ゴール
 	goalModel_ = Model::CreateFromOBJ("goal", true);
-	goalPos_ = mapChipField_->GetMatChipPositionByIndex(30, 18);
+	goalPos_ = mapChipField_->GetMatChipPositionByIndex(82, 18);
 	goal_.Initialize(goalPos_);
 
 	clearTextModel_ = Model::CreateFromOBJ("clear", true);
@@ -98,6 +101,10 @@ void GameScene::Initialize() {
 	textureHandle_ = TextureManager::Load("operator.png");
 
 	operatorSprite_ = Sprite::Create(textureHandle_, {0.0f, 0.0f});
+
+	bgmHandle_ = Audio::GetInstance()->LoadWave("sounds/bgm.wav");
+
+	Audio::GetInstance()->PlayWave(bgmHandle_, true, 0.5f);
 }
 
 void GameScene::Update() {

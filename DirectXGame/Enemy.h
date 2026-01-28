@@ -1,11 +1,11 @@
 #pragma once
 #define NOMINMAX
-#include <Windows.h>
-#include <algorithm> 
 #include "AABB.h"
 #include "KamataEngine.h"
+#include "MapChipField.h"
 #include "WorldMatrixTransform.h"
-#include"MapChipField.h"
+#include <Windows.h>
+#include <algorithm>
 #include <numbers>
 
 using namespace KamataEngine;
@@ -20,7 +20,7 @@ class GameScene;
 class Enemy {
 
 public:
-	void Initialize(Model* model, Camera* camera, Vector3& position);
+	void Initialize(Model* model, Camera* camera, const Vector3& position);
 
 	void Update();
 
@@ -100,12 +100,11 @@ private:
 
 	GameScene* gameScene_ = nullptr;
 
-	 MapChipField* map_ = nullptr;
+	MapChipField* map_ = nullptr;
 
 	static inline constexpr float kEPS = 0.001f;
 	static inline constexpr float kMaxStep = 0.3f;
 
-	  bool IsSolidAt(const Vector3& p) const;
+	bool IsSolidAt(const Vector3& p) const;
 	MapChipField::Rect TileRectAt(const Vector3& p) const;
-
 };

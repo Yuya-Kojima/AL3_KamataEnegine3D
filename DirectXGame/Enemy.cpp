@@ -2,7 +2,7 @@
 #include "GameScene.h"
 #include "Player.h"
 
-void Enemy::Initialize(Model* model, Camera* camera, Vector3& position) {
+void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	model_ = model;
 	camera_ = camera;
 	worldTransform_.Initialize();
